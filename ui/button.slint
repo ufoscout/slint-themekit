@@ -1,0 +1,80 @@
+import { Theme } from "theme.slint";
+import { StateLayer } from "state-layer.slint";
+
+export enum ButtonKind { primary, secondary, ghost, danger }
+
+// Push button with optional icon. Leave `text` empty for an icon-only button
+// (and set `accessible-label` so screen readers can announce it).
+export component Button inherits Rectangle {
+    in property <string> text;
+    in property <image> icon;
+    in property <ButtonKind> kind: ButtonKind.primary;
+    in property <bool> enabled: true;
+    callback clicked();
+
+    property <bool> icon-only: root.text == "";
+    property <color> fill: root.kind == ButtonKind.primary ? Theme.palette.primary
+        : root.kind == ButtonKind.danger ? Theme.palette.danger
+        : root.kind == ButtonKind.secondary ? Theme.palette.surface
+        : transparent;
+    property <color> ink: root.kind == ButtonKind.primary ? Theme.palette.on-primary
+        : root.kind == ButtonKind.danger ? Theme.palette.on-danger
+        : Theme.palette.text;
+
+    min-height: Theme.sizes.control-height;
+    min-width: root.icon-only ? Theme.sizes.control-height : 0px;
+    horizontal-stretch: 0;
+    border-radius: Theme.radii.md;
+    background: root.fill;
+    border-width: root.kind == ButtonKind.secondary ? Theme.sizes.border-width : 0px;
+    border-color: Theme.palette.border;
+    opacity: root.enabled ? 1 : Theme.states.disabled;
+
+    accessible-role: button;
+    accessible-label: root.text;
+    accessible-enabled: root.enabled;
+    accessible-action-default => {
+        if root.enabled {
+            root.clicked();
+        }
+    }
+
+    StateLayer {
+        border-radius: root.border-radius;
+        tint: root.ink;
+        hovered: touch.has-hover;
+        pressed: touch.pressed;
+    }
+
+    HorizontalLayout {
+        padding-left: root.icon-only ? Theme.spacing.sm : Theme.spacing.lg;
+        padding-right: self.padding-left;
+        spacing: Theme.spacing.sm;
+        alignment: center;
+
+        if root.icon.width > 0: VerticalLayout {
+            alignment: center;
+            Image {
+                source: root.icon;
+                colorize: root.ink;
+                width: Theme.sizes.icon;
+                height: Theme.sizes.icon;
+            }
+        }
+        if !root.icon-only: Text {
+            text: root.text;
+            accessible-role: none;
+            color: root.ink;
+            font-family: Theme.typography.family;
+            font-size: Theme.typography.body-size;
+            font-weight: Theme.typography.strong-weight;
+            vertical-alignment: center;
+        }
+    }
+
+    touch := TouchArea {
+        enabled: root.enabled;
+        mouse-cursor: pointer;
+        clicked => { root.clicked(); }
+    }
+}

@@ -1,0 +1,69 @@
+import { Theme } from "theme.slint";
+import { Icons } from "icons.slint";
+import { Label } from "label.slint";
+import { StateLayer } from "state-layer.slint";
+
+// A *controlled* checkbox: it never changes `checked` by itself, it only
+// reports `toggled()`. The owner of the state decides what happens, which
+// keeps the UI a pure view of that state.
+export component Checkbox inherits Rectangle {
+    in property <bool> checked;
+    in property <string> text;
+    in property <bool> enabled: true;
+    callback toggled();
+
+    horizontal-stretch: 0;
+    vertical-stretch: 0;
+    opacity: root.enabled ? 1 : Theme.states.disabled;
+    accessible-role: checkbox;
+    accessible-checkable: true;
+    accessible-checked: root.checked;
+    accessible-label: root.text;
+    accessible-enabled: root.enabled;
+    accessible-action-default => {
+        if root.enabled {
+            root.toggled();
+        }
+    }
+
+    HorizontalLayout {
+        spacing: Theme.spacing.sm;
+        alignment: start;
+
+        VerticalLayout {
+            alignment: center;
+            Rectangle {
+                width: Theme.sizes.indicator;
+                height: Theme.sizes.indicator;
+                border-radius: Theme.radii.sm;
+                background: root.checked ? Theme.palette.primary : Theme.palette.surface;
+                border-width: root.checked ? 0px : Theme.sizes.border-width;
+                border-color: Theme.palette.border;
+                animate background { duration: Theme.motion.fast; }
+
+                StateLayer {
+                    border-radius: parent.border-radius;
+                    hovered: touch.has-hover;
+                    pressed: touch.pressed;
+                }
+
+                if root.checked: Image {
+                    source: Icons.check;
+                    colorize: Theme.palette.on-primary;
+                    width: Theme.sizes.icon;
+                    height: Theme.sizes.icon;
+                }
+            }
+        }
+
+        if root.text != "": Label {
+            text: root.text;
+        }
+    }
+
+    touch := TouchArea {
+        enabled: root.enabled;
+        mouse-cursor: pointer;
+        clicked => { root.toggled(); }
+    }
+}

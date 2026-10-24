@@ -1,0 +1,21 @@
+import { Theme } from "theme.slint";
+
+// Elevated surface that stacks its children vertically.
+export component Card inherits Rectangle {
+    in property <length> content-padding: Theme.spacing.lg;
+    in property <length> content-spacing: Theme.spacing.md;
+
+    background: Theme.palette.surface;
+    border-radius: Theme.radii.lg;
+    border-width: Theme.sizes.border-width;
+    border-color: Theme.palette.border;
+    drop-shadow-blur: Theme.elevation.blur;
+    drop-shadow-offset-y: Theme.elevation.offset;
+    drop-shadow-color: Theme.palette.shadow;
+
+    VerticalLayout {
+        padding: root.content-padding;
+        spacing: root.content-spacing;
+        @children
+    }
+}

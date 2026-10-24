@@ -1,0 +1,53 @@
+import { Theme } from "theme.slint";
+import { StateLayer } from "state-layer.slint";
+
+// Selectable pill, typically used in groups as a filter or segmented control.
+// Like every control here it is controlled: `selected` is an input.
+export component Chip inherits Rectangle {
+    in property <string> text;
+    in property <bool> selected;
+    callback clicked();
+
+    property <color> ink: root.selected ? Theme.palette.on-primary-container : Theme.palette.text-muted;
+
+    min-height: Theme.sizes.control-height;
+    horizontal-stretch: 0;
+    border-radius: min(Theme.radii.full, self.height / 2);
+    background: root.selected ? Theme.palette.primary-container : transparent;
+    border-width: root.selected ? 0px : Theme.sizes.border-width;
+    border-color: Theme.palette.border;
+    animate background { duration: Theme.motion.fast; }
+
+    accessible-role: button;
+    accessible-label: root.text;
+    accessible-item-selectable: true;
+    accessible-item-selected: root.selected;
+    accessible-action-default => { root.clicked(); }
+
+    StateLayer {
+        border-radius: root.border-radius;
+        tint: root.ink;
+        hovered: touch.has-hover;
+        pressed: touch.pressed;
+    }
+
+    HorizontalLayout {
+        padding-left: Theme.spacing.md;
+        padding-right: Theme.spacing.md;
+
+        Text {
+            text: root.text;
+            accessible-role: none;
+            color: root.ink;
+            font-family: Theme.typography.family;
+            font-size: Theme.typography.body-size;
+            font-weight: root.selected ? Theme.typography.strong-weight : Theme.typography.regular-weight;
+            vertical-alignment: center;
+        }
+    }
+
+    touch := TouchArea {
+        mouse-cursor: pointer;
+        clicked => { root.clicked(); }
+    }
+}

@@ -1,0 +1,49 @@
+import { Theme } from "theme.slint";
+
+// Single-line text input with placeholder and focus ring.
+export component TextField inherits Rectangle {
+    in-out property <string> text <=> input.text;
+    in property <string> placeholder;
+    in property <bool> enabled <=> input.enabled;
+    out property <bool> has-focus: input.has-focus;
+    callback accepted(text: string);
+    callback edited(text: string);
+
+    min-height: Theme.sizes.control-height;
+    horizontal-stretch: 1;
+    clip: true;
+    border-radius: Theme.radii.md;
+    background: Theme.palette.surface;
+    border-width: input.has-focus ? Theme.sizes.focus-width : Theme.sizes.border-width;
+    border-color: input.has-focus ? Theme.palette.focus-ring : Theme.palette.border;
+    opacity: root.enabled ? 1 : Theme.states.disabled;
+
+    HorizontalLayout {
+        padding-left: Theme.spacing.md;
+        padding-right: Theme.spacing.md;
+
+        input := TextInput {
+            vertical-alignment: center;
+            single-line: true;
+            accessible-placeholder-text: root.placeholder;
+            color: Theme.palette.text;
+            font-family: Theme.typography.family;
+            font-size: Theme.typography.body-size;
+            selection-background-color: Theme.palette.primary-container;
+            selection-foreground-color: Theme.palette.on-primary-container;
+            accepted => { root.accepted(self.text); }
+            edited => { root.edited(self.text); }
+        }
+    }
+
+    if root.text == "": Text {
+        x: Theme.spacing.md;
+        height: root.height;
+        text: root.placeholder;
+        accessible-role: none;
+        color: Theme.palette.text-muted;
+        font-family: Theme.typography.family;
+        font-size: Theme.typography.body-size;
+        vertical-alignment: center;
+    }
+}

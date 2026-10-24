@@ -1,0 +1,102 @@
+// Design-token types. A theme is nothing more than a `ThemeData` value:
+// every visual decision a component makes is read from one of these fields.
+
+// Semantic colors. Components ask for a role ("primary", "surface"),
+// never for a concrete color.
+export struct Palette {
+    background: color,
+    surface: color,
+    surface-variant: color,
+    border: color,
+    text: color,
+    text-muted: color,
+    primary: color,
+    on-primary: color,
+    primary-container: color,
+    on-primary-container: color,
+    success: color,
+    warning: color,
+    danger: color,
+    on-danger: color,
+    // Tint laid over interactive elements when hovered or pressed.
+    state-layer: color,
+    focus-ring: color,
+    shadow: color,
+}
+
+export struct Typography {
+    // Empty string means "platform default".
+    family: string,
+    caption-size: length,
+    body-size: length,
+    heading-size: length,
+    title-size: length,
+    display-size: length,
+    regular-weight: int,
+    strong-weight: int,
+}
+
+export struct Spacing {
+    xs: length,
+    sm: length,
+    md: length,
+    lg: length,
+    xl: length,
+}
+
+export struct Radii {
+    sm: length,
+    md: length,
+    lg: length,
+    // Used for pills (chips, badges). Set to 0 for a square look.
+    full: length,
+}
+
+export struct Sizes {
+    control-height: length,
+    icon: length,
+    // Checkbox box, color swatches, ...
+    indicator: length,
+    border-width: length,
+    focus-width: length,
+    progress-height: length,
+    scrollbar-width: length,
+}
+
+// Opacities of the state layer and of disabled controls.
+export struct StateOpacity {
+    hover: float,
+    pressed: float,
+    disabled: float,
+    // Background strength of tinted elements such as badges.
+    tint: float,
+}
+
+export struct Elevation {
+    blur: length,
+    offset: length,
+}
+
+export struct Motion {
+    fast: duration,
+    normal: duration,
+}
+
+export struct ThemeData {
+    name: string,
+    dark: bool,
+    palette: Palette,
+    typography: Typography,
+    spacing: Spacing,
+    radii: Radii,
+    sizes: Sizes,
+    states: StateOpacity,
+    elevation: Elevation,
+    motion: Motion,
+}
+
+// Semantic color intent of text, badges, progress bars, ...
+export enum Tone { neutral, muted, primary, success, warning, danger }
+
+// Typographic role of a text element.
+export enum TextRole { caption, body, heading, title, display }

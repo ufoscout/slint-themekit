@@ -1,0 +1,92 @@
+// The two built-in themes. This file (and any app-level theme file) is the
+// only place where concrete colors and sizes are allowed to appear.
+
+import { ThemeData, Typography, Spacing, Radii, Sizes, StateOpacity, Motion } from "tokens.slint";
+
+export global ThemePresets {
+    // Shape, rhythm and motion shared by both presets.
+    property <Typography> typography: {
+        family: "",
+        caption-size: 12px,
+        body-size: 14px,
+        heading-size: 17px,
+        title-size: 22px,
+        display-size: 34px,
+        regular-weight: 400,
+        strong-weight: 600
+    };
+    property <Spacing> spacing: { xs: 4px, sm: 8px, md: 12px, lg: 16px, xl: 24px };
+    property <Radii> radii: { sm: 4px, md: 8px, lg: 12px, full: 999px };
+    property <Sizes> sizes: {
+        control-height: 36px,
+        icon: 16px,
+        indicator: 18px,
+        border-width: 1px,
+        focus-width: 2px,
+        progress-height: 8px,
+        scrollbar-width: 6px
+    };
+    property <Motion> motion: { fast: 120ms, normal: 240ms };
+
+    out property <ThemeData> light: {
+        name: "Light",
+        dark: false,
+        palette: {
+            background: #f5f6fa,
+            surface: #ffffff,
+            surface-variant: #eceef4,
+            border: #d9dce5,
+            text: #1d2130,
+            text-muted: #687087,
+            primary: #4f46e5,
+            on-primary: #ffffff,
+            primary-container: #e4e2fd,
+            on-primary-container: #2e2a8f,
+            success: #15803d,
+            warning: #b45309,
+            danger: #dc2626,
+            on-danger: #ffffff,
+            state-layer: #1d2130,
+            focus-ring: #6366f1,
+            shadow: #1d21301a
+        },
+        typography: typography,
+        spacing: spacing,
+        radii: radii,
+        sizes: sizes,
+        states: { hover: 0.06, pressed: 0.12, disabled: 0.45, tint: 0.12 },
+        elevation: { blur: 12px, offset: 2px },
+        motion: motion
+    };
+
+    out property <ThemeData> dark: {
+        name: "Dark",
+        dark: true,
+        palette: {
+            background: #12141c,
+            surface: #1b1e29,
+            surface-variant: #232736,
+            border: #2f3447,
+            text: #e8eaf2,
+            text-muted: #9aa1b8,
+            primary: #8b85ff,
+            on-primary: #14123a,
+            primary-container: #2d2a5e,
+            on-primary-container: #d9d6ff,
+            success: #4ade80,
+            warning: #fbbf24,
+            danger: #f87171,
+            on-danger: #2a0a0a,
+            state-layer: #ffffff,
+            focus-ring: #a5a0ff,
+            shadow: #00000000
+        },
+        typography: typography,
+        spacing: spacing,
+        radii: radii,
+        sizes: sizes,
+        states: { hover: 0.08, pressed: 0.14, disabled: 0.4, tint: 0.2 },
+        elevation: { blur: 0px, offset: 0px },
+        motion: motion
+    };
+}

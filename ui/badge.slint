@@ -1,0 +1,35 @@
+import { Theme } from "theme.slint";
+import { Tone } from "tokens.slint";
+
+// Small tinted pill for statuses and counts.
+export component Badge inherits Rectangle {
+    in property <string> text;
+    in property <Tone> tone: Tone.neutral;
+
+    property <color> ink: Theme.tone-color(root.tone == Tone.neutral ? Tone.muted : root.tone);
+
+    border-radius: min(Theme.radii.full, self.height / 2);
+    background: root.ink.with-alpha(Theme.states.tint);
+    horizontal-stretch: 0;
+    vertical-stretch: 0;
+    accessible-role: AccessibleRole.text;
+    accessible-label: root.text;
+
+    HorizontalLayout {
+        padding-left: Theme.spacing.sm;
+        padding-right: Theme.spacing.sm;
+        padding-top: Theme.spacing.xs / 2;
+        padding-bottom: Theme.spacing.xs / 2;
+
+        Text {
+            text: root.text;
+            accessible-role: none;
+            color: root.ink;
+            font-family: Theme.typography.family;
+            font-size: Theme.typography.caption-size;
+            font-weight: Theme.typography.strong-weight;
+            vertical-alignment: center;
+            horizontal-alignment: center;
+        }
+    }
+}

@@ -1,0 +1,61 @@
+import { Theme } from "theme.slint";
+import { StateLayer } from "state-layer.slint";
+
+// Entry of a navigation sidebar or rail.
+export component NavItem inherits Rectangle {
+    in property <string> text;
+    in property <image> icon;
+    in property <bool> active;
+    callback clicked();
+
+    property <color> ink: root.active ? Theme.palette.on-primary-container : Theme.palette.text-muted;
+
+    min-height: Theme.sizes.control-height;
+    border-radius: Theme.radii.md;
+    background: root.active ? Theme.palette.primary-container : transparent;
+    animate background { duration: Theme.motion.fast; }
+
+    accessible-role: tab;
+    accessible-label: root.text;
+    accessible-item-selectable: true;
+    accessible-item-selected: root.active;
+    accessible-action-default => { root.clicked(); }
+
+    StateLayer {
+        border-radius: root.border-radius;
+        tint: root.ink;
+        hovered: touch.has-hover;
+        pressed: touch.pressed;
+    }
+
+    HorizontalLayout {
+        padding-left: Theme.spacing.md;
+        padding-right: Theme.spacing.lg;
+        spacing: Theme.spacing.md;
+
+        VerticalLayout {
+            alignment: center;
+            Image {
+                source: root.icon;
+                colorize: root.ink;
+                width: Theme.sizes.icon;
+                height: Theme.sizes.icon;
+            }
+        }
+
+        Text {
+            text: root.text;
+            accessible-role: none;
+            color: root.ink;
+            font-family: Theme.typography.family;
+            font-size: Theme.typography.body-size;
+            font-weight: root.active ? Theme.typography.strong-weight : Theme.typography.regular-weight;
+            vertical-alignment: center;
+        }
+    }
+
+    touch := TouchArea {
+        mouse-cursor: pointer;
+        clicked => { root.clicked(); }
+    }
+}

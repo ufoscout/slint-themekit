@@ -1,0 +1,23 @@
+[package]
+name = "themekit-gallery"
+description = "Showcase of slint-themekit, built the way any app consumes it"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+publish = false
+
+[dependencies]
+slint.workspace = true
+
+[build-dependencies]
+slint-build.workspace = true
+# Only needed at build time, to tell the Slint compiler where "@themekit" lives.
+slint-themekit.workspace = true
+
+[dev-dependencies]
+# The token lint, run on the gallery's own UI.
+slint-themekit.workspace = true
+
+[lints]
+workspace = true

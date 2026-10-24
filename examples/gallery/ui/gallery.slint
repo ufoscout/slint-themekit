@@ -1,0 +1,137 @@
+// Showcase of every component, in every preset theme.
+// Run with: cargo run -p themekit-gallery
+//
+// tests/gallery.rs fails if a component exported by the library is missing here.
+
+import { Theme, ThemePresets, Label, Button, ButtonKind, Checkbox, TextField, Card, Badge, Chip, ProgressBar, NavItem, Divider, ScrollArea, StateLayer, Icons, Tone, TextRole } from "@themekit";
+
+export component Gallery inherits Window {
+    title: "slint-themekit gallery";
+    background: Theme.palette.background;
+
+    property <bool> checked: true;
+    property <int> chip: 0;
+    property <float> progress: 0.4;
+
+    HorizontalLayout {
+        padding: Theme.spacing.xl;
+        spacing: Theme.spacing.lg;
+
+        VerticalLayout {
+            spacing: Theme.spacing.lg;
+            alignment: start;
+
+            Label { text: "slint-themekit"; role: TextRole.display; }
+            Label { text: "Every pixel below comes from the active theme."; tone: Tone.muted; }
+
+            HorizontalLayout {
+                spacing: Theme.spacing.sm;
+                alignment: start;
+                Chip { text: ThemePresets.light.name; selected: !Theme.current.dark; clicked => { Theme.current = ThemePresets.light; } }
+                Chip { text: ThemePresets.dark.name; selected: Theme.current.dark; clicked => { Theme.current = ThemePresets.dark; } }
+            }
+
+            Card {
+                Label { text: "Buttons"; role: TextRole.heading; }
+                HorizontalLayout {
+                    spacing: Theme.spacing.sm;
+                    alignment: start;
+                    Button { text: "Primary"; icon: Icons.plus; }
+                    Button { text: "Secondary"; kind: ButtonKind.secondary; }
+                    Button { text: "Ghost"; kind: ButtonKind.ghost; }
+                    Button { text: "Danger"; kind: ButtonKind.danger; }
+                    Button { text: "Disabled"; enabled: false; }
+                    Button { icon: Icons.trash; kind: ButtonKind.ghost; accessible-label: "Delete"; }
+                }
+                Divider { }
+                Label { text: "Inputs"; role: TextRole.heading; }
+                TextField { placeholder: "Type something…"; }
+                Checkbox {
+                    text: "Controlled checkbox";
+                    checked: root.checked;
+                    toggled => { root.checked = !root.checked; }
+                }
+                HorizontalLayout {
+                    spacing: Theme.spacing.sm;
+                    alignment: start;
+                    for label[index] in ["Day", "Week", "Month"]: Chip {
+                        text: label;
+                        selected: root.chip == index;
+                        clicked => { root.chip = index; }
+                    }
+                }
+            }
+
+            Card {
+                Label { text: "Scrolling"; role: TextRole.heading; }
+                ScrollArea {
+                    height: Theme.sizes.control-height * 4;
+                    for index in 12: Label { text: "Row \{index + 1}"; }
+                }
+            }
+
+            Card {
+                Label { text: "Building blocks"; role: TextRole.heading; }
+                Label {
+                    text: "StateLayer gives your own components the library's hover and press feedback.";
+                    tone: Tone.muted;
+                    wrap: word-wrap;
+                }
+                Rectangle {
+                    min-height: Theme.sizes.control-height * 2;
+                    border-radius: Theme.radii.md;
+                    border-width: Theme.sizes.border-width;
+                    border-color: Theme.palette.border;
+
+                    StateLayer {
+                        border-radius: parent.border-radius;
+                        hovered: surface.has-hover;
+                        pressed: surface.pressed;
+                    }
+                    Label { text: "Hover or press this surface"; horizontal-alignment: center; }
+                    surface := TouchArea { mouse-cursor: pointer; }
+                }
+            }
+        }
+
+        VerticalLayout {
+            spacing: Theme.spacing.lg;
+            alignment: start;
+
+            Card {
+                Label { text: "Feedback"; role: TextRole.heading; }
+                HorizontalLayout {
+                    spacing: Theme.spacing.sm;
+                    alignment: start;
+                    Badge { text: "Neutral"; }
+                    Badge { text: "Primary"; tone: Tone.primary; }
+                    Badge { text: "Success"; tone: Tone.success; }
+                    Badge { text: "Warning"; tone: Tone.warning; }
+                    Badge { text: "Danger"; tone: Tone.danger; }
+                }
+                ProgressBar { value: root.progress; }
+                HorizontalLayout {
+                    spacing: Theme.spacing.sm;
+                    alignment: start;
+                    Button { text: "Less"; kind: ButtonKind.secondary; clicked => { root.progress = max(0, root.progress - 0.1); } }
+                    Button { text: "More"; kind: ButtonKind.secondary; clicked => { root.progress = min(1, root.progress + 0.1); } }
+                }
+            }
+
+            Card {
+                Label { text: "Navigation"; role: TextRole.heading; }
+                NavItem { text: "Inbox"; icon: Icons.list; active: true; }
+                NavItem { text: "Reports"; icon: Icons.chart; }
+                NavItem { text: "Appearance"; icon: Icons.contrast; }
+            }
+
+            Card {
+                Label { text: "Typography"; role: TextRole.heading; }
+                Label { text: "Title"; role: TextRole.title; }
+                Label { text: "Heading"; role: TextRole.heading; }
+                Label { text: "Body text"; }
+                Label { text: "Caption"; role: TextRole.caption; tone: Tone.muted; }
+            }
+        }
+    }
+}

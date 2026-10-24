@@ -1,0 +1,14 @@
+import { Theme } from "theme.slint";
+import { Tone, TextRole } from "tokens.slint";
+
+// Themed text. Pick a typographic `role` and a semantic `tone`.
+export component Label inherits Text {
+    in property <TextRole> role: TextRole.body;
+    in property <Tone> tone: Tone.neutral;
+
+    color: Theme.tone-color(root.tone);
+    font-family: Theme.typography.family;
+    font-size: Theme.font-size(root.role);
+    font-weight: Theme.font-weight(root.role);
+    vertical-alignment: center;
+}

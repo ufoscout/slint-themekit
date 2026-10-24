@@ -1,0 +1,13 @@
+import { Theme } from "theme.slint";
+
+// Translucent overlay that gives any surface hover and pressed feedback.
+// Place it below the content of an interactive element.
+export component StateLayer inherits Rectangle {
+    in property <bool> hovered;
+    in property <bool> pressed;
+    in property <color> tint: Theme.palette.state-layer;
+
+    background: root.tint.with-alpha(root.pressed ? Theme.states.pressed : root.hovered ? Theme.states.hover : 0);
+
+    animate background { duration: Theme.motion.fast; }
+}

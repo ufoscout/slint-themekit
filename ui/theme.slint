@@ -1,0 +1,58 @@
+// The single source of truth for look and feel. Assign `Theme.current`
+// (from Slint or from Rust) and every component restyles itself.
+
+import { ThemeData, Palette, Typography, Spacing, Radii, Sizes, StateOpacity, Elevation, Motion, Tone, TextRole } from "tokens.slint";
+import { ThemePresets } from "presets.slint";
+
+export global Theme {
+    in-out property <ThemeData> current: ThemePresets.light;
+
+    // Shortcuts, so components can write `Theme.palette.primary`.
+    out property <Palette> palette: current.palette;
+    out property <Typography> typography: current.typography;
+    out property <Spacing> spacing: current.spacing;
+    out property <Radii> radii: current.radii;
+    out property <Sizes> sizes: current.sizes;
+    out property <StateOpacity> states: current.states;
+    out property <Elevation> elevation: current.elevation;
+    out property <Motion> motion: current.motion;
+
+    public pure function tone-color(tone: Tone) -> color {
+        if tone == Tone.muted {
+            return palette.text-muted;
+        }
+        if tone == Tone.primary {
+            return palette.primary;
+        }
+        if tone == Tone.success {
+            return palette.success;
+        }
+        if tone == Tone.warning {
+            return palette.warning;
+        }
+        if tone == Tone.danger {
+            return palette.danger;
+        }
+        palette.text
+    }
+
+    public pure function font-size(role: TextRole) -> length {
+        if role == TextRole.caption {
+            return typography.caption-size;
+        }
+        if role == TextRole.heading {
+            return typography.heading-size;
+        }
+        if role == TextRole.title {
+            return typography.title-size;
+        }
+        if role == TextRole.display {
+            return typography.display-size;
+        }
+        typography.body-size
+    }
+
+    public pure function font-weight(role: TextRole) -> int {
+        role == TextRole.caption || role == TextRole.body ? typography.regular-weight : typography.strong-weight
+    }
+}

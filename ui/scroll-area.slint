@@ -1,0 +1,58 @@
+import { Theme } from "theme.slint";
+
+// Vertically scrolling container with a themed, draggable scroll indicator.
+// Children are stacked in a VerticalLayout.
+export component ScrollArea inherits Rectangle {
+    in property <length> content-spacing: Theme.spacing.xs;
+
+    property <length> max-offset: max(0px, flick.content-height - flick.height);
+    property <length> track-width: Theme.sizes.scrollbar-width + Theme.spacing.xs;
+
+    vertical-stretch: 1;
+    horizontal-stretch: 1;
+
+    flick := Flickable {
+        x: 0;
+        y: 0;
+        width: root.width - root.track-width;
+        height: root.height;
+
+        VerticalLayout {
+            spacing: root.content-spacing;
+            alignment: start;
+            @children
+        }
+    }
+
+    if root.max-offset > 0: Rectangle {
+        x: root.width - Theme.sizes.scrollbar-width;
+        width: Theme.sizes.scrollbar-width;
+        height: root.height;
+
+        handle := Rectangle {
+            y: (parent.height - self.height) * (-flick.content-y / root.max-offset);
+            height: max(Theme.sizes.control-height, parent.height * flick.height / flick.content-height);
+            border-radius: min(Theme.radii.full, self.width / 2);
+            background: drag.pressed || drag.has-hover ? Theme.palette.text-muted : Theme.palette.border;
+            animate background { duration: Theme.motion.fast; }
+        }
+
+        drag := TouchArea {
+            property <length> start-offset;
+
+            pointer-event(event) => {
+                if event.kind == PointerEventKind.down {
+                    self.start-offset = -flick.content-y;
+                }
+            }
+            moved => {
+                if self.pressed {
+                    flick.content-y = -clamp(
+                        self.start-offset + (self.mouse-y - self.pressed-y) * root.max-offset / (parent.height - handle.height),
+                        0px,
+                        root.max-offset);
+                }
+            }
+        }
+    }
+}
