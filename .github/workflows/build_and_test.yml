@@ -3,12 +3,10 @@ name: Rust Build and Test
 on:
   pull_request:
     branches:
-    - master
-    - develop
+    - main
   push:
     branches:
-    - master
-    - develop
+    - main
 
 jobs:
   build:
