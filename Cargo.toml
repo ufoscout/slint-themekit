@@ -1,36 +1,20 @@
-[package]
-name = "slint-themekit"
-description = "A small, fully themeable Slint component library driven by design tokens"
-version.workspace = true
-edition.workspace = true
-rust-version.workspace = true
-license.workspace = true
-readme = "README.md"
-keywords = ["slint", "gui", "components", "theme", "design-tokens"]
-categories = ["gui"]
-# The .slint sources are the actual library: make sure they are published.
-include = ["src/**/*", "ui/**/*", "tests/**/*", "README.md", "DESIGN_PRINCIPLES.md"]
-
-# No dependencies at all: apps use this crate from their build script to
-# locate the .slint files, and from their tests to run the token lint.
-
-[lints]
-workspace = true
-
 [workspace]
 resolver = "3"
-# The gallery is a separate crate so that it can consume the library exactly
-# like an app does: from its own build script.
-members = ["examples/gallery"]
+# The library is crates/slint-themekit. The gallery is a separate crate so
+# that it can consume the library exactly like an app does: from its own
+# build script.
+members = ["crates/*"]
 
 [workspace.package]
 version = "0.1.0"
 edition = "2024"
 rust-version = "1.92"
-license = "MIT OR Apache-2.0"
+license = "GPL-2.0"
+repository = "https://github.com/ufoscout/slint-themekit"
+homepage = "https://github.com/ufoscout/slint-themekit"
 
 [workspace.dependencies]
-slint-themekit = { path = "." }
+slint-themekit = { path = "crates/slint-themekit" }
 slint = "1.18.1"
 slint-build = "1.18.1"
 

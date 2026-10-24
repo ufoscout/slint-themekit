@@ -83,7 +83,7 @@ fn gallery_shows_every_exported_component() -> io::Result<()> {
         .collect();
     assert!(
         missing.is_empty(),
-        "add these components to examples/gallery/ui/gallery.slint: {missing:?}"
+        "add these components to crates/themekit-gallery/ui/gallery.slint: {missing:?}"
     );
     Ok(())
 }

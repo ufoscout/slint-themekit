@@ -1,7 +1,8 @@
 //! Guarantees a published version of the library only uses design tokens.
 //!
 //! Compiling the library against a real consumer is covered by the gallery
-//! (`examples/gallery`), which builds it from `build.rs` like an app does.
+//! (`crates/themekit-gallery`), which builds it from `build.rs` like an app
+//! does.
 
 use std::path::PathBuf;
 

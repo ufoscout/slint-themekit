@@ -1,0 +1,23 @@
+[package]
+name = "slint-themekit"
+authors = ["Francesco Cina <ufoscout@gmail.com>"]
+description = "A small, fully themeable Slint component library driven by design tokens"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+# Cargo copies the readme into the package even though it lives outside it.
+readme = "../../README.md"
+keywords = ["slint", "gui", "components", "theme", "design-tokens"]
+categories = ["gui"]
+repository.workspace = true
+homepage.workspace = true
+# The .slint sources are the actual library: make sure they are published.
+# DESIGN_PRINCIPLES.md is a symlink to the repository's copy.
+include = ["src/**/*", "ui/**/*", "tests/**/*", "DESIGN_PRINCIPLES.md"]
+
+# No dependencies at all: apps use this crate from their build script to
+# locate the .slint files, and from their tests to run the token lint.
+
+[lints]
+workspace = true

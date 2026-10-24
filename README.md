@@ -60,11 +60,12 @@ export component App inherits Window {
 
 ## Theming
 
-A theme is a `ThemeData` struct (see `ui/tokens.slint`): `palette`,
-`typography`, `spacing`, `radii`, `sizes`, `states`, `elevation`, `motion`.
-Two presets ship in `ThemePresets` (`light`, `dark`). To add your own, declare
-a `ThemeData` value in a global of your app and assign it to `Theme.current`,
-from Slint or from Rust (`window.global::<Theme>().set_current(..)`).
+A theme is a `ThemeData` struct (see `crates/slint-themekit/ui/tokens.slint`):
+`palette`, `typography`, `spacing`, `radii`, `sizes`, `states`, `elevation`,
+`motion`. Two presets ship in `ThemePresets` (`light`, `dark`). To add your
+own, declare a `ThemeData` value in a global of your app and assign it to
+`Theme.current`, from Slint or from Rust
+(`window.global::<Theme>().set_current(..)`).
 
 ## Token lint
 
@@ -83,9 +84,9 @@ fn ui_uses_tokens_only() -> std::io::Result<()> {
 
 ## Gallery
 
-`examples/gallery` (the `themekit-gallery` crate) shows every component in
-both presets. It uses this library exactly like an app does, and its tests fail
-if an exported component is missing from it:
+`crates/themekit-gallery` shows every component in both presets. It uses this
+library exactly like an app does, and its tests fail if an exported component
+is missing from it:
 
 ```sh
 cargo run -p themekit-gallery

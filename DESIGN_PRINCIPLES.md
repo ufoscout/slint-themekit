@@ -117,12 +117,12 @@ the files and provides the lint.
 
 ## 11. The gallery is the first consumer (enforced)
 
-`examples/gallery` uses the library exactly like an app does (build script
-plus `@themekit` imports), so building it checks the library from the
+`crates/themekit-gallery` uses the library exactly like an app does (build
+script plus `@themekit` imports), so building it checks the library from the
 outside. It shows:
 
-- every exported component (`examples/gallery/tests/gallery.rs` fails
-  otherwise);
+- every exported component (`crates/themekit-gallery/tests/gallery.rs`
+  fails otherwise);
 - every variant and state;
 - every preset;
 
