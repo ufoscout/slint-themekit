@@ -1,0 +1,33 @@
+import { Theme } from "theme.slint";
+
+// The themed bubble of Slint's built-in `Tooltip`: put one in a `Tooltip`,
+// inside the element it explains, and Slint shows it near the pointer after
+// a short hover. It's drawn inverted (text-colored, with surface-colored
+// text), so it stands out from any surface.
+//
+//     Label {
+//         text: path;
+//         overflow: elide;
+//         Tooltip { TooltipText { text: path; } }
+//     }
+export component TooltipText inherits Rectangle {
+    in property <string> text;
+
+    background: Theme.palette.text;
+    border-radius: Theme.radii.sm;
+
+    HorizontalLayout {
+        padding-left: Theme.spacing.sm;
+        padding-right: Theme.spacing.sm;
+        padding-top: Theme.spacing.xs;
+        padding-bottom: Theme.spacing.xs;
+
+        Text {
+            text: root.text;
+            color: Theme.palette.surface;
+            font-family: Theme.typography.family;
+            font-size: Theme.typography.caption-size;
+            vertical-alignment: center;
+        }
+    }
+}

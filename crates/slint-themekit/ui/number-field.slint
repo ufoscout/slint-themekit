@@ -1,0 +1,141 @@
+import { Theme } from "theme.slint";
+import { StateLayer } from "state-layer.slint";
+
+// A number the user drags sideways to change, or clicks to type: a compact
+// numeric input for tables and forms. Controlled: `value` is an input, and
+// every change is reported through `changed(value)` at once — each step of
+// a drag, or the typed number on Enter or focus loss — snapped to a `step`
+// (0 for any value) and clamped from `minimum` to `maximum`.
+export component NumberField inherits Rectangle {
+    in property <float> value;
+    in property <float> minimum: 0;
+    in property <float> maximum: 100;
+    in property <float> step: 1;
+    in property <bool> enabled: true;
+    out property <bool> has-focus: input.has-focus;
+    callback changed(value: float);
+
+    // A drag moves the value one step per this many pixels.
+    property <length> step-travel: Theme.sizes.control-height / 8;
+
+    min-height: Theme.sizes.control-height;
+    min-width: Theme.sizes.control-height;
+    horizontal-stretch: 1;
+    clip: true;
+    border-radius: Theme.radii.md;
+    background: Theme.palette.surface;
+    border-width: input.has-focus ? Theme.sizes.focus-width : Theme.sizes.border-width;
+    border-color: input.has-focus ? Theme.palette.focus-ring : Theme.palette.border;
+    opacity: root.enabled ? 1 : Theme.states.disabled;
+
+    accessible-role: spinbox;
+    accessible-value: root.value;
+    accessible-value-minimum: root.minimum;
+    accessible-value-maximum: root.maximum;
+    accessible-value-step: root.step;
+    accessible-enabled: root.enabled;
+    accessible-action-increment => { root.request(root.value + root.step); }
+    accessible-action-decrement => { root.request(root.value - root.step); }
+    accessible-action-set-value(text) => {
+        if text.is-float() {
+            root.request(text.to-float());
+        }
+    }
+
+    // Report `wanted`, snapped to the step grid and clamped to the range,
+    // unless it is the current value.
+    function request(wanted: float) {
+        if !root.enabled {
+            return;
+        }
+        let snapped = root.step > 0 ? root.minimum + Math.round((wanted - root.minimum) / root.step) * root.step : wanted;
+        let next = clamp(snapped, root.minimum, root.maximum);
+        if next != root.value {
+            root.changed(next);
+        }
+    }
+
+    // The typed text, as a value; then the value again, whatever was typed.
+    function commit() {
+        if input.text.is-float() {
+            root.request(input.text.to-float());
+        }
+        input.text = root.value;
+    }
+
+    changed value => {
+        if !input.has-focus {
+            input.text = root.value;
+        }
+    }
+    init => { input.text = root.value; }
+
+    StateLayer {
+        border-radius: root.border-radius;
+        hovered: drag.has-hover;
+        pressed: drag.pressed;
+    }
+
+    HorizontalLayout {
+        padding-left: Theme.spacing.sm;
+        padding-right: Theme.spacing.sm;
+
+        input := TextInput {
+            enabled: root.enabled;
+            single-line: true;
+            horizontal-alignment: center;
+            vertical-alignment: center;
+            accessible-role: none;
+            color: Theme.palette.text;
+            font-family: Theme.typography.family;
+            font-size: Theme.typography.body-size;
+            selection-background-color: Theme.palette.primary-container;
+            selection-foreground-color: Theme.palette.on-primary-container;
+            accepted => {
+                root.commit();
+                self.clear-focus();
+            }
+            changed has-focus => {
+                if !self.has-focus {
+                    root.commit();
+                }
+            }
+        }
+    }
+
+    // Over the text until it is being typed: a drag changes the value, a
+    // click without one starts typing.
+    drag := TouchArea {
+        // The value when the press started, and whether it became a drag.
+        property <float> start-value;
+        property <bool> dragging;
+
+        enabled: root.enabled && !input.has-focus;
+        mouse-cursor: ew-resize;
+
+        pointer-event(event) => {
+            if event.button != PointerEventButton.left {
+                return;
+            }
+            if event.kind == PointerEventKind.down {
+                self.start-value = root.value;
+                self.dragging = false;
+            } else if event.kind == PointerEventKind.up && !self.dragging {
+                input.focus();
+                input.select-all();
+            }
+        }
+        moved => {
+            if !self.pressed {
+                return;
+            }
+            let travel = self.mouse-x - self.pressed-x;
+            if abs(travel) >= root.step-travel {
+                self.dragging = true;
+            }
+            if self.dragging && root.step > 0 {
+                root.request(self.start-value + Math.round(travel / root.step-travel) * root.step);
+            }
+        }
+    }
+}

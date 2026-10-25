@@ -1,0 +1,61 @@
+import { Theme } from "theme.slint";
+
+// One dot of the grip.
+component GripDot inherits Rectangle {
+    in property <color> ink;
+
+    width: Theme.sizes.border-width * 2;
+    height: self.width;
+    border-radius: min(Theme.radii.full, self.width / 2);
+    background: self.ink;
+    animate background { duration: Theme.motion.fast; }
+}
+
+// A corner handle dragged to resize what it sits in: place it over the
+// bottom-right corner. It draws a triangle of dots. Controlled: the app owns
+// the size, and the grip reports each drag step through `dragged(dx, dy)`,
+// positive to the right and down. The app applies it, clamped to its own
+// limits.
+export component ResizeGrip inherits Rectangle {
+    callback dragged(dx: length, dy: length);
+
+    property <length> dot: Theme.sizes.border-width * 2;
+    property <length> pitch: root.dot + Theme.spacing.xs / 2;
+    // Muted, so it doesn't compete with the content; full strength while
+    // hovered or dragged.
+    property <color> ink: touch.pressed || touch.has-hover ? Theme.palette.text : Theme.palette.text-muted;
+
+    width: Theme.sizes.icon;
+    height: Theme.sizes.icon;
+
+    // Assistive technologies resize by steps, like a slider.
+    accessible-role: slider;
+    accessible-action-increment => { root.dragged(Theme.spacing.lg, Theme.spacing.lg); }
+    accessible-action-decrement => { root.dragged(-Theme.spacing.lg, -Theme.spacing.lg); }
+
+    // The dot `steps` pitches in from the corner's right / bottom edge.
+    pure function dot-x(steps: int) -> length {
+        root.width - Theme.spacing.xs - root.dot - steps * root.pitch
+    }
+    pure function dot-y(steps: int) -> length {
+        root.height - Theme.spacing.xs - root.dot - steps * root.pitch
+    }
+
+    GripDot { x: root.dot-x(0); y: root.dot-y(0); ink: root.ink; }
+    GripDot { x: root.dot-x(1); y: root.dot-y(0); ink: root.ink; }
+    GripDot { x: root.dot-x(2); y: root.dot-y(0); ink: root.ink; }
+    GripDot { x: root.dot-x(0); y: root.dot-y(1); ink: root.ink; }
+    GripDot { x: root.dot-x(1); y: root.dot-y(1); ink: root.ink; }
+    GripDot { x: root.dot-x(0); y: root.dot-y(2); ink: root.ink; }
+
+    touch := TouchArea {
+        mouse-cursor: nwse-resize;
+        // The pointer's offset from where it was pressed: once the app moves
+        // the grip with the corner, the next offset is only the new travel.
+        moved => {
+            if self.pressed {
+                root.dragged(self.mouse-x - self.pressed-x, self.mouse-y - self.pressed-y);
+            }
+        }
+    }
+}

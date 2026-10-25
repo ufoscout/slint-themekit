@@ -12,15 +12,18 @@ The rules every component follows are in
 ## Components
 
 `Label`, `Button` (primary / secondary / ghost / danger, optional icon),
-`Checkbox`, `Slider`, `TextField`, `Select` (a dropdown), `Chip`, `Badge`,
-`Card`, `ProgressBar`, `Spinner`, `NavItem`, `Dialog` (modal, over a scrim),
-`Tab` (optionally closable) in a `TabBar` (wraps when the tabs don't fit),
-`ListView` (only the rows in view exist, for long lists; scrolls sideways
-for wide rows) of `ListItem`s or of `TreeItem`s (a tree, flattened),
-`Menu` (a popup) of `MenuItem`s, `Divider` and `VerticalDivider`, `Splitter`
-(a handle that resizes the panes beside it), `ScrollArea` (scrolls sideways
-too when its content is wider), `StateLayer` (hover/press feedback for your
-own components) and an `Icons` set drawn from [Lucide](https://lucide.dev).
+`Checkbox`, `Slider`, `NumberField` (drag sideways or type), `TextField`,
+`Select` (a dropdown), `Chip`, `Badge`, `Card`, `ProgressBar`, `Spinner`,
+`NavItem`, `Dialog` (modal, over a scrim), `Tab` (optionally closable) in a
+`TabBar` (wraps when the tabs don't fit), `ListView` (only the rows in view
+exist, for long lists; scrolls sideways for wide rows) of `ListItem`s or of
+`TreeItem`s (a tree, flattened), `Menu` (a popup) of `MenuItem`s, `Divider`
+and `VerticalDivider`, `Splitter` (a handle that resizes the panes beside
+it), `ResizeGrip` (a corner handle that resizes what it sits in), `Shadow` (a
+floating panel's shadow, drawn on every renderer), `TooltipText` (the bubble
+of Slint's built-in `Tooltip`), `ScrollArea` (scrolls sideways too when its
+content is wider), `StateLayer` (hover/press feedback for your own
+components) and an `Icons` set drawn from [Lucide](https://lucide.dev).
 
 Interactive controls are *controlled*: a `Checkbox` never flips its own
 `checked`, it reports `toggled()`. The state owner decides, which keeps the UI
@@ -75,7 +78,12 @@ export component App inherits Window {
 
 A theme is a `ThemeData` struct (see `crates/slint-themekit/ui/tokens.slint`):
 `palette`, `typography`, `spacing`, `radii`, `sizes`, `states`, `elevation`,
-`motion`. The palette's `scrim` is laid over the UI behind a `Dialog`. Two
+`motion`. The palette's `scrim` is laid over the UI behind a `Dialog`. There
+are two shadows: `shadow` with `elevation.blur` / `offset` for surfaces lying
+on the UI (cards), and the stronger `overlay-shadow` with
+`elevation.overlay-blur` / `overlay-offset` for panels floating over it
+(dialogs, and your own panels through `Shadow`); zero blur means no
+shadow. Two
 presets ship in `ThemePresets` (`light`, `dark`). To add your
 own, declare a `ThemeData` value in a global of your app and assign it to
 `Theme.current`, from Slint or from Rust

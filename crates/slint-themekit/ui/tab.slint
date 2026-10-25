@@ -1,10 +1,12 @@
 import { Theme } from "theme.slint";
 import { Icons } from "icons.slint";
 import { StateLayer } from "state-layer.slint";
+import { TooltipText } from "tooltip-text.slint";
 
 // One tab of a `TabBar`. Controlled: `selected` is an input, `clicked()` asks
 // to select the tab. A `closable` tab also shows a × that asks to close it
-// with `close-requested()`; name the × for screen readers with `close-label`.
+// with `close-requested()`; `close-label` names the × for screen readers and
+// in its tooltip.
 export component Tab inherits Rectangle {
     in property <string> text;
     in property <bool> selected;
@@ -79,6 +81,9 @@ export component Tab inherits Rectangle {
                 close-touch := TouchArea {
                     mouse-cursor: pointer;
                     clicked => { root.close-requested(); }
+                }
+                if root.close-label != "": Tooltip {
+                    TooltipText { text: root.close-label; }
                 }
             }
         }

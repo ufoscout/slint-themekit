@@ -1,6 +1,7 @@
 import { Theme } from "theme.slint";
 import { TextRole } from "tokens.slint";
 import { Label } from "label.slint";
+import { Shadow } from "shadow.slint";
 
 // A modal dialog: a titled panel centred over a scrim that keeps clicks from
 // reaching the UI behind it. Its children go in the panel, under the title;
@@ -16,7 +17,15 @@ export component Dialog inherits Rectangle {
 
     TouchArea { }
 
-    Rectangle {
+    Shadow {
+        x: panel.x;
+        y: panel.y;
+        width: panel.width;
+        height: panel.height;
+        radius: panel.border-radius;
+    }
+
+    panel := Rectangle {
         property <length> room-width: root.width - Theme.spacing.xl * 2;
         property <length> room-height: root.height - Theme.spacing.xl * 2;
 
@@ -28,9 +37,6 @@ export component Dialog inherits Rectangle {
         border-radius: Theme.radii.lg;
         border-width: Theme.sizes.border-width;
         border-color: Theme.palette.border;
-        drop-shadow-blur: Theme.elevation.blur;
-        drop-shadow-offset-y: Theme.elevation.offset;
-        drop-shadow-color: Theme.palette.shadow;
         accessible-role: groupbox;
         accessible-label: root.title;
 

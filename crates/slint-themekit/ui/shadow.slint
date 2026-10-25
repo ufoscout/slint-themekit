@@ -1,0 +1,31 @@
+import { Theme } from "theme.slint";
+
+// The soft shadow of a panel floating over the UI, like a dialog's: give it
+// the panel's geometry and corner `radius`, and declare it before the panel
+// so it is drawn behind. It's a few translucent rounded rectangles, each a
+// little larger and fainter, spread over `elevation.overlay-blur` and
+// lowered by `overlay-offset`, in `palette.overlay-shadow`: unlike
+// `drop-shadow-*`, it shows on every renderer, Slint's software renderer
+// included.
+export component Shadow inherits Rectangle {
+    in property <length> radius;
+
+    // Enough layers that their steps blend into a gradient.
+    property <int> layers: 6;
+    property <length> step: Theme.elevation.overlay-blur / root.layers;
+
+    accessible-role: none;
+
+    for layer in root.layers: Rectangle {
+        property <length> spread: (layer + 1) * root.step;
+
+        x: -self.spread;
+        y: Theme.elevation.overlay-offset - self.spread;
+        width: root.width + self.spread * 2;
+        height: root.height + self.spread * 2;
+        border-radius: root.radius + self.spread;
+        // Each layer adds its share of the shadow's strength: densest at
+        // the panel's edge, fading out over the blur.
+        background: Theme.palette.overlay-shadow.transparentize(1 - 1 / root.layers);
+    }
+}

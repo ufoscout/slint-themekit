@@ -49,6 +49,7 @@ export global ThemePresets {
             state-layer: #1d2130,
             focus-ring: #6366f1,
             shadow: #1d21301a,
+            overlay-shadow: #1d213033,
             scrim: #1d213066
         },
         typography: typography,
@@ -56,7 +57,7 @@ export global ThemePresets {
         radii: radii,
         sizes: sizes,
         states: { hover: 0.06, pressed: 0.12, disabled: 0.45, tint: 0.12 },
-        elevation: { blur: 12px, offset: 2px },
+        elevation: { blur: 12px, offset: 2px, overlay-blur: 12px, overlay-offset: 3px },
         motion: motion
     };
 
@@ -81,6 +82,7 @@ export global ThemePresets {
             state-layer: #ffffff,
             focus-ring: #a5a0ff,
             shadow: #00000000,
+            overlay-shadow: #000000a6,
             scrim: #00000099
         },
         typography: typography,
@@ -88,7 +90,7 @@ export global ThemePresets {
         radii: radii,
         sizes: sizes,
         states: { hover: 0.08, pressed: 0.14, disabled: 0.4, tint: 0.2 },
-        elevation: { blur: 0px, offset: 0px },
+        elevation: { blur: 0px, offset: 0px, overlay-blur: 12px, overlay-offset: 3px },
         motion: motion
     };
 }

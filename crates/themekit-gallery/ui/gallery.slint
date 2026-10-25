@@ -3,7 +3,7 @@
 //
 // tests/gallery.rs fails if a component exported by the library is missing here.
 
-import { Theme, ThemePresets, Label, Button, ButtonKind, Checkbox, Slider, TextField, Select, Card, Badge, Chip, ProgressBar, Spinner, NavItem, Tab, TabBar, ListView, ListItem, TreeItem, Menu, MenuItem, Dialog, Divider, VerticalDivider, Splitter, ScrollArea, StateLayer, Icons, Tone, TextRole } from "@themekit";
+import { Theme, ThemePresets, Label, Button, ButtonKind, Checkbox, Slider, NumberField, TextField, TooltipText, Select, Card, Badge, Chip, ProgressBar, Spinner, NavItem, Tab, TabBar, ListView, ListItem, TreeItem, Menu, MenuItem, Dialog, Divider, VerticalDivider, Splitter, ResizeGrip, ScrollArea, StateLayer, Shadow, Icons, Tone, TextRole } from "@themekit";
 
 export component Gallery inherits Window {
     title: "slint-themekit gallery";
@@ -25,12 +25,16 @@ export component Gallery inherits Window {
     property <int> size: 1;
     property <bool> dialog-open;
     property <float> volume: 30;
+    property <float> copies: 3;
     // The tree demo: which folders are open, and the selected node.
     property <[bool]> folders-open: [true, false];
     property <int> tree-node: 1;
     // The panes demo: the left pane's width and the top pane's height.
     property <length> left-pane: Theme.sizes.control-height * 3;
     property <length> top-pane: Theme.sizes.control-height * 1.5;
+    // The resize grip demo: the box's size.
+    property <length> box-width: Theme.sizes.control-height * 6;
+    property <length> box-height: Theme.sizes.control-height * 2;
 
     // Taller than most screens: the window opens at the columns' width and
     // a height that fits, and scrolls the rest.
@@ -63,7 +67,13 @@ export component Gallery inherits Window {
                         Button { text: "Ghost"; kind: ButtonKind.ghost; }
                         Button { text: "Danger"; kind: ButtonKind.danger; }
                         Button { text: "Disabled"; enabled: false; }
-                        Button { icon: Icons.trash; kind: ButtonKind.ghost; accessible-label: "Delete"; }
+                        Button {
+                            icon: Icons.trash;
+                            kind: ButtonKind.ghost;
+                            accessible-label: "Delete";
+                            // Hover it: icon-only buttons explain themselves.
+                            Tooltip { TooltipText { text: "Delete"; } }
+                        }
                     }
                     Divider { }
                     Label { text: "Inputs"; role: TextRole.heading; }
@@ -90,6 +100,22 @@ export component Gallery inherits Window {
                         }
                         Label { text: "Volume \{root.volume}"; tone: Tone.muted; }
                         Slider { value: 60; enabled: false; }
+                    }
+                    HorizontalLayout {
+                        spacing: Theme.spacing.md;
+                        alignment: start;
+                        NumberField {
+                            width: Theme.sizes.control-height * 2.5;
+                            value: root.copies;
+                            maximum: 10;
+                            changed(value) => { root.copies = value; }
+                        }
+                        Label { text: "Copies (0 to 10): drag sideways, or click and type"; tone: Tone.muted; }
+                        NumberField {
+                            width: Theme.sizes.control-height * 2.5;
+                            value: 7;
+                            enabled: false;
+                        }
                     }
                     Checkbox {
                         text: "Controlled checkbox";
@@ -148,6 +174,32 @@ export component Gallery inherits Window {
                         surface := TouchArea { mouse-cursor: pointer; }
                     }
                     Label {
+                        text: "Shadow gives your own floating panels the dialogs' shadow.";
+                        tone: Tone.muted;
+                        wrap: word-wrap;
+                    }
+                    Rectangle {
+                        height: Theme.sizes.control-height * 2.5;
+                        Shadow {
+                            x: floating.x;
+                            y: floating.y;
+                            width: floating.width;
+                            height: floating.height;
+                            radius: floating.border-radius;
+                        }
+                        floating := Rectangle {
+                            x: Theme.spacing.lg;
+                            y: Theme.spacing.sm;
+                            width: parent.width - Theme.spacing.lg * 2;
+                            height: parent.height - Theme.spacing.lg * 2;
+                            background: Theme.palette.surface;
+                            border-radius: Theme.radii.lg;
+                            border-width: Theme.sizes.border-width;
+                            border-color: Theme.palette.border;
+                            Label { text: "A floating panel"; horizontal-alignment: center; }
+                        }
+                    }
+                    Label {
                         text: "Splitters resize the panes beside them: drag the bars.";
                         tone: Tone.muted;
                         wrap: word-wrap;
@@ -180,6 +232,30 @@ export component Gallery inherits Window {
                                 vertical-stretch: 1;
                                 background: Theme.palette.surface-variant;
                                 Label { text: "Bottom"; horizontal-alignment: center; }
+                            }
+                        }
+                    }
+                    Label {
+                        text: "A resize grip resizes the box it sits in: drag its corner.";
+                        tone: Tone.muted;
+                        wrap: word-wrap;
+                    }
+                    HorizontalLayout {
+                        alignment: start;
+                        Rectangle {
+                            width: root.box-width;
+                            height: root.box-height;
+                            border-radius: Theme.radii.md;
+                            border-width: Theme.sizes.border-width;
+                            border-color: Theme.palette.border;
+                            Label { text: "Resizable"; horizontal-alignment: center; }
+                            ResizeGrip {
+                                x: parent.width - self.width;
+                                y: parent.height - self.height;
+                                dragged(dx, dy) => {
+                                    root.box-width = clamp(root.box-width + dx, Theme.sizes.control-height * 3, Theme.sizes.control-height * 12);
+                                    root.box-height = clamp(root.box-height + dy, Theme.sizes.control-height, Theme.sizes.control-height * 4);
+                                }
                             }
                         }
                     }
@@ -303,7 +379,17 @@ export component Gallery inherits Window {
                         text: root.list-opened < 0 ? "Nothing opened yet." : "Opened item \{root.list-opened + 1}.";
                         tone: Tone.muted;
                     }
-                    Label { text: "Rows wider than the list scroll sideways:"; tone: Tone.muted; }
+                    Label { text: "Rows wider than the list scroll sideways, and the header follows:"; tone: Tone.muted; wrap: word-wrap; }
+                    Rectangle {
+                        clip: true;
+                        height: wide-header.preferred-height;
+                        wide-header := Label {
+                            x: wide-list.content-x + Theme.spacing.md;
+                            text: "Header: a line much longer than the list is wide, like the rows";
+                            role: TextRole.caption;
+                            tone: Tone.muted;
+                        }
+                    }
                     wide-list := ListView {
                         height: Theme.sizes.control-height * 3;
                         content-width: Theme.sizes.control-height * 16;

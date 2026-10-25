@@ -21,7 +21,11 @@ export struct Palette {
     // Tint laid over interactive elements when hovered or pressed.
     state-layer: color,
     focus-ring: color,
+    // Cast by surfaces lying on the UI, like cards.
     shadow: color,
+    // Cast by panels floating over the UI, like a dialog: strong enough to
+    // show over the scrim.
+    overlay-shadow: color,
     // Laid over the UI behind a modal dialog.
     scrim: color,
 }
@@ -75,8 +79,12 @@ export struct StateOpacity {
 }
 
 export struct Elevation {
+    // Surfaces lying on the UI, like cards.
     blur: length,
     offset: length,
+    // Panels floating over it, like dialogs (with `overlay-shadow`).
+    overlay-blur: length,
+    overlay-offset: length,
 }
 
 export struct Motion {

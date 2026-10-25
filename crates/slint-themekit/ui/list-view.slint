@@ -6,7 +6,8 @@ import { ScrollIndicator } from "scroll-indicator.slint";
 // stays fast with thousands of rows. `content-y` is the scroll offset (0 at
 // the top, negative further down): assign it to scroll from outside. For
 // rows wider than the list, set `content-width` and the rows' `width` to
-// their width: the list then scrolls sideways too.
+// their width: the list then scrolls sideways too, by `content-x` (0 at the
+// left, negative further right), which a header can follow.
 export component ListView inherits Rectangle {
     // Slint virtualises the rows of a component named `ListView` that has
     // these five lengths; they also expose the scroll state to the app.
@@ -15,6 +16,7 @@ export component ListView inherits Rectangle {
     in-out property <length> content-width <=> flick.content-width;
     out property <length> visible-height: flick.height;
     out property <length> visible-width: flick.width;
+    in-out property <length> content-x <=> flick.content-x;
 
     property <length> track-width: Theme.sizes.scrollbar-width + Theme.spacing.xs;
     property <bool> wide: flick.content-width > flick.width;
