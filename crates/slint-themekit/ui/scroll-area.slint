@@ -18,6 +18,10 @@ export component ScrollArea inherits Rectangle {
         y: 0;
         width: root.width - root.track;
         height: root.height - (root.wide ? root.track : 0);
+        // The mouse scrolls with the wheel or the indicators: dragging the
+        // content would take drags away from the sliders and splitters in it.
+        // Touch still pans.
+        mouse-drag-pan-enabled: false;
 
         VerticalLayout {
             spacing: root.content-spacing;
