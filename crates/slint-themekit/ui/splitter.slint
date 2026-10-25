@@ -1,0 +1,51 @@
+import { Theme } from "theme.slint";
+import { StateLayer } from "state-layer.slint";
+
+// A handle between two panes, dragged to resize them: put it between the
+// panes in a layout. Controlled: the app owns the panes' sizes, and the
+// splitter reports each drag step through `dragged(delta)`, positive to the
+// right (or down). The app applies it, clamped to its own limits.
+export component Splitter inherits Rectangle {
+    // How the panes sit: `horizontal` side by side (a vertical bar dragged
+    // sideways), `vertical` stacked (a horizontal bar dragged up and down).
+    in property <Orientation> orientation: Orientation.horizontal;
+    callback dragged(delta: length);
+
+    property <bool> side-by-side: root.orientation == Orientation.horizontal;
+
+    // Thin along the axis the panes sit on. Across it the splitter must
+    // stretch: a layout stretches only as much as its least stretchy child.
+    preferred-width: Theme.spacing.sm;
+    preferred-height: Theme.spacing.sm;
+    horizontal-stretch: root.side-by-side ? 0 : 1;
+    vertical-stretch: root.side-by-side ? 1 : 0;
+
+    // Assistive technologies resize by steps, like a slider.
+    accessible-role: slider;
+    accessible-action-increment => { root.dragged(Theme.spacing.lg); }
+    accessible-action-decrement => { root.dragged(-Theme.spacing.lg); }
+
+    StateLayer {
+        hovered: touch.has-hover;
+        pressed: touch.pressed;
+    }
+
+    Rectangle {
+        x: (root.width - self.width) / 2;
+        y: (root.height - self.height) / 2;
+        width: root.side-by-side ? Theme.sizes.border-width : root.width;
+        height: root.side-by-side ? root.height : Theme.sizes.border-width;
+        background: Theme.palette.border;
+    }
+
+    touch := TouchArea {
+        mouse-cursor: root.side-by-side ? MouseCursor.col-resize : MouseCursor.row-resize;
+        // The pointer's offset from where it was pressed: once the app moves
+        // the splitter after it, the next offset is only the new travel.
+        moved => {
+            if self.pressed {
+                root.dragged(root.side-by-side ? self.mouse-x - self.pressed-x : self.mouse-y - self.pressed-y);
+            }
+        }
+    }
+}

@@ -1,0 +1,46 @@
+import { Theme } from "theme.slint";
+import { StateLayer } from "state-layer.slint";
+
+// A row of a `ListView`; its children are the cells, side by side. The row
+// is as tall as its cells. Controlled: `selected` is an input, `clicked()`
+// and `double-clicked()` report what the user did, and `pointer-x` /
+// `pointer-y` locate the last click inside the row (to open a `Menu` there).
+export component ListItem inherits Rectangle {
+    in property <bool> selected;
+    // The row's position in its list: odd rows get a stripe. -1 for none.
+    in property <int> index: -1;
+    out property <length> pointer-x: touch.mouse-x;
+    out property <length> pointer-y: touch.mouse-y;
+    callback clicked();
+    callback double-clicked();
+
+    background: root.selected ? Theme.palette.primary-container
+        : root.index >= 0 && Math.mod(root.index, 2) == 1 ? Theme.palette.surface-variant
+        : transparent;
+    animate background { duration: Theme.motion.fast; }
+
+    accessible-role: list-item;
+    accessible-item-selectable: true;
+    accessible-item-selected: root.selected;
+    accessible-action-default => { root.clicked(); }
+
+    StateLayer {
+        hovered: touch.has-hover;
+        pressed: touch.pressed;
+    }
+
+    // Behind the cells, so interactive cells keep their own input.
+    touch := TouchArea {
+        clicked => { root.clicked(); }
+        double-clicked => { root.double-clicked(); }
+    }
+
+    HorizontalLayout {
+        padding-left: Theme.spacing.md;
+        padding-right: Theme.spacing.md;
+        padding-top: Theme.spacing.xs;
+        padding-bottom: Theme.spacing.xs;
+        spacing: Theme.spacing.sm;
+        @children
+    }
+}

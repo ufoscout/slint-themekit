@@ -12,13 +12,26 @@ The rules every component follows are in
 ## Components
 
 `Label`, `Button` (primary / secondary / ghost / danger, optional icon),
-`Checkbox`, `TextField`, `Chip`, `Badge`, `Card`, `ProgressBar`, `NavItem`,
-`Divider`, `ScrollArea`, `StateLayer` (hover/press feedback for your own
-components) and an `Icons` set.
+`Checkbox`, `Slider`, `TextField`, `Select` (a dropdown), `Chip`, `Badge`,
+`Card`, `ProgressBar`, `Spinner`, `NavItem`, `Dialog` (modal, over a scrim),
+`Tab` (optionally closable) in a `TabBar` (wraps when the tabs don't fit),
+`ListView` (only the rows in view exist, for long lists; scrolls sideways
+for wide rows) of `ListItem`s or of `TreeItem`s (a tree, flattened),
+`Menu` (a popup) of `MenuItem`s, `Divider` and `VerticalDivider`, `Splitter`
+(a handle that resizes the panes beside it), `ScrollArea` (scrolls sideways
+too when its content is wider), `StateLayer` (hover/press feedback for your
+own components) and an `Icons` set drawn from [Lucide](https://lucide.dev).
 
 Interactive controls are *controlled*: a `Checkbox` never flips its own
 `checked`, it reports `toggled()`. The state owner decides, which keeps the UI
 a pure view of your application state.
+
+## Icons
+
+The icons in `crates/slint-themekit/ui/icons/` are
+[Lucide](https://lucide.dev) icons, copied unmodified and distributed under
+Lucide's ISC license (`ui/icons/LICENSE`). `just icons` downloads them from the
+Lucide release pinned in `just/icons.just`.
 
 ## Usage
 
@@ -62,7 +75,8 @@ export component App inherits Window {
 
 A theme is a `ThemeData` struct (see `crates/slint-themekit/ui/tokens.slint`):
 `palette`, `typography`, `spacing`, `radii`, `sizes`, `states`, `elevation`,
-`motion`. Two presets ship in `ThemePresets` (`light`, `dark`). To add your
+`motion`. The palette's `scrim` is laid over the UI behind a `Dialog`. Two
+presets ship in `ThemePresets` (`light`, `dark`). To add your
 own, declare a `ThemeData` value in a global of your app and assign it to
 `Theme.current`, from Slint or from Rust
 (`window.global::<Theme>().set_current(..)`).

@@ -1,5 +1,6 @@
 import "./just/build.just"
 import "./just/code_check.just"
+import "./just/icons.just"
 import "./just/publish.just"
 import "./just/run.just"
 import "./just/test.just"

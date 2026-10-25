@@ -1,0 +1,85 @@
+import { Theme } from "theme.slint";
+import { Icons } from "icons.slint";
+import { StateLayer } from "state-layer.slint";
+
+// A row of a tree shown as a flat `ListView`: the app lists the nodes in
+// view, in order, and gives each its depth (`level`, 0 for the roots).
+// Controlled: `expanded` and `selected` are inputs; clicking the row reports
+// `clicked()`, clicking the chevron of an `expandable` row reports
+// `toggled()`. Extra children are trailing cells, after the text.
+export component TreeItem inherits Rectangle {
+    in property <string> text;
+    in property <int> level;
+    in property <bool> expandable;
+    in property <bool> expanded;
+    in property <bool> selected;
+    callback clicked();
+    callback toggled();
+
+    property <color> ink: root.selected ? Theme.palette.on-primary-container : Theme.palette.text;
+
+    background: root.selected ? Theme.palette.primary-container : transparent;
+    animate background { duration: Theme.motion.fast; }
+
+    accessible-role: list-item;
+    accessible-label: root.text;
+    accessible-item-selectable: true;
+    accessible-item-selected: root.selected;
+    accessible-expandable: root.expandable;
+    accessible-expanded: root.expanded;
+    accessible-action-default => { root.clicked(); }
+    accessible-action-expand => {
+        if root.expandable {
+            root.toggled();
+        }
+    }
+
+    StateLayer {
+        hovered: touch.has-hover;
+        pressed: touch.pressed;
+    }
+
+    // Behind the cells, so the chevron and interactive cells keep their own
+    // input.
+    touch := TouchArea {
+        clicked => { root.clicked(); }
+    }
+
+    HorizontalLayout {
+        // Each level indents by one chevron, so a node's chevron sits under
+        // its parent's text.
+        padding-left: Theme.spacing.sm + root.level * (Theme.sizes.icon + Theme.spacing.xs);
+        padding-right: Theme.spacing.md;
+        padding-top: Theme.spacing.xs;
+        padding-bottom: Theme.spacing.xs;
+        spacing: Theme.spacing.xs;
+
+        // Leaves keep the chevron's room, so siblings' texts line up.
+        Rectangle {
+            width: Theme.sizes.icon;
+
+            if root.expandable: Image {
+                source: root.expanded ? Icons.expand : Icons.collapsed;
+                colorize: root.ink;
+                width: Theme.sizes.icon;
+                height: Theme.sizes.icon;
+                accessible-role: none;
+            }
+            if root.expandable: TouchArea {
+                mouse-cursor: pointer;
+                clicked => { root.toggled(); }
+            }
+        }
+        Text {
+            text: root.text;
+            accessible-role: none;
+            color: root.ink;
+            font-family: Theme.typography.family;
+            font-size: Theme.typography.body-size;
+            vertical-alignment: center;
+            horizontal-stretch: 1;
+            overflow: elide;
+        }
+        @children
+    }
+}

@@ -1,0 +1,48 @@
+import { Theme } from "theme.slint";
+import { TextRole } from "tokens.slint";
+import { Label } from "label.slint";
+
+// A modal dialog: a titled panel centred over a scrim that keeps clicks from
+// reaching the UI behind it. Its children go in the panel, under the title;
+// end with a row of buttons. Show it with an `if` on the app's state, sized
+// like the area it covers. The panel fits its content, or `panel-width` /
+// `panel-height` when they're set; it always stays inside the area.
+export component Dialog inherits Rectangle {
+    in property <string> title;
+    in property <length> panel-width;
+    in property <length> panel-height;
+
+    background: Theme.palette.scrim;
+
+    TouchArea { }
+
+    Rectangle {
+        property <length> room-width: root.width - Theme.spacing.xl * 2;
+        property <length> room-height: root.height - Theme.spacing.xl * 2;
+
+        width: min(root.panel-width > 0 ? root.panel-width : content.preferred-width, self.room-width);
+        height: min(root.panel-height > 0 ? root.panel-height : content.preferred-height, self.room-height);
+        x: (root.width - self.width) / 2;
+        y: (root.height - self.height) / 2;
+        background: Theme.palette.surface;
+        border-radius: Theme.radii.lg;
+        border-width: Theme.sizes.border-width;
+        border-color: Theme.palette.border;
+        drop-shadow-blur: Theme.elevation.blur;
+        drop-shadow-offset-y: Theme.elevation.offset;
+        drop-shadow-color: Theme.palette.shadow;
+        accessible-role: groupbox;
+        accessible-label: root.title;
+
+        content := VerticalLayout {
+            padding: Theme.spacing.lg;
+            spacing: Theme.spacing.md;
+            Label {
+                text: root.title;
+                role: TextRole.title;
+                accessible-role: none;
+            }
+            @children
+        }
+    }
+}

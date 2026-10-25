@@ -1,0 +1,46 @@
+import { Theme } from "theme.slint";
+import { Tone } from "tokens.slint";
+
+// An indeterminate progress indicator: a turning arc, for work of unknown
+// length. It stands still when the theme turns animation off.
+export component Spinner inherits Rectangle {
+    in property <Tone> tone: Tone.primary;
+
+    // One turn, and one grow-and-shrink of the arc: multiples of the theme's
+    // motion, so a slower theme spins slower.
+    property <duration> turn: Theme.motion.normal * 12;
+    property <duration> pulse: Theme.motion.normal * 6;
+    property <bool> animated: Theme.motion.normal > 0ms;
+    // Where the arc starts and how much of the circle it covers (0..1).
+    property <float> start: root.animated ? Math.mod(animation-tick(), root.turn) / root.turn : 0;
+    property <float> sweep: root.animated ? max(0.2, min(0.9, abs(sin(360deg * animation-tick() / root.pulse)))) : 0.25;
+
+    min-width: Theme.sizes.icon * 2;
+    min-height: Theme.sizes.icon * 2;
+    horizontal-stretch: 0;
+    vertical-stretch: 0;
+    accessible-role: progress-indicator;
+
+    Path {
+        width: 100%;
+        height: 100%;
+        viewbox-width: 100;
+        viewbox-height: 100;
+        stroke: Theme.tone-color(root.tone);
+        stroke-width: Theme.sizes.focus-width * 1.5;
+        stroke-line-cap: round;
+
+        MoveTo {
+            x: 50 + 42 * sin(root.start * 360deg);
+            y: 50 - 42 * cos(root.start * 360deg);
+        }
+        ArcTo {
+            radius-x: 42;
+            radius-y: 42;
+            x: 50 + 42 * sin((root.start + root.sweep) * 360deg);
+            y: 50 - 42 * cos((root.start + root.sweep) * 360deg);
+            sweep: true;
+            large-arc: root.sweep > 0.5;
+        }
+    }
+}

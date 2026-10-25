@@ -1,0 +1,86 @@
+import { Theme } from "theme.slint";
+import { Icons } from "icons.slint";
+import { StateLayer } from "state-layer.slint";
+
+// One tab of a `TabBar`. Controlled: `selected` is an input, `clicked()` asks
+// to select the tab. A `closable` tab also shows a × that asks to close it
+// with `close-requested()`; name the × for screen readers with `close-label`.
+export component Tab inherits Rectangle {
+    in property <string> text;
+    in property <bool> selected;
+    in property <bool> closable;
+    in property <string> close-label;
+    callback clicked();
+    callback close-requested();
+
+    property <color> ink: root.selected ? Theme.palette.on-primary-container : Theme.palette.text-muted;
+
+    min-height: Theme.sizes.control-height;
+    horizontal-stretch: 0;
+    border-radius: Theme.radii.md;
+    background: root.selected ? Theme.palette.primary-container : Theme.palette.surface-variant;
+    animate background { duration: Theme.motion.fast; }
+
+    accessible-role: tab;
+    accessible-label: root.text;
+    accessible-item-selectable: true;
+    accessible-item-selected: root.selected;
+    accessible-action-default => { root.clicked(); }
+
+    StateLayer {
+        border-radius: root.border-radius;
+        tint: root.ink;
+        hovered: touch.has-hover;
+        pressed: touch.pressed;
+    }
+
+    touch := TouchArea {
+        mouse-cursor: pointer;
+        clicked => { root.clicked(); }
+    }
+
+    HorizontalLayout {
+        padding-left: Theme.spacing.md;
+        padding-right: root.closable ? Theme.spacing.xs : Theme.spacing.md;
+        spacing: Theme.spacing.xs;
+
+        Text {
+            text: root.text;
+            accessible-role: none;
+            color: root.ink;
+            font-family: Theme.typography.family;
+            font-size: Theme.typography.body-size;
+            font-weight: root.selected ? Theme.typography.strong-weight : Theme.typography.regular-weight;
+            vertical-alignment: center;
+        }
+
+        if root.closable: VerticalLayout {
+            alignment: center;
+            Rectangle {
+                width: Theme.sizes.icon + Theme.spacing.xs * 2;
+                height: self.width;
+                border-radius: min(Theme.radii.full, self.height / 2);
+                accessible-role: button;
+                accessible-label: root.close-label;
+                accessible-action-default => { root.close-requested(); }
+
+                StateLayer {
+                    border-radius: parent.border-radius;
+                    tint: root.ink;
+                    hovered: close-touch.has-hover;
+                    pressed: close-touch.pressed;
+                }
+                Image {
+                    source: Icons.close;
+                    colorize: root.ink;
+                    width: Theme.sizes.icon;
+                    height: Theme.sizes.icon;
+                }
+                close-touch := TouchArea {
+                    mouse-cursor: pointer;
+                    clicked => { root.close-requested(); }
+                }
+            }
+        }
+    }
+}

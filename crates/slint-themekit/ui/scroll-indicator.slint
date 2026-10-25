@@ -1,0 +1,50 @@
+import { Theme } from "theme.slint";
+
+// The scroll indicator of `ScrollArea` and `ListView`: a themed thumb along
+// one edge, sized to the visible fraction of the content, which can be
+// dragged. Private: not re-exported from lib.slint. Show it only while the
+// content overflows along its `orientation`.
+export component ScrollIndicator inherits Rectangle {
+    in property <Orientation> orientation: Orientation.vertical;
+    // The size of the scrolled content along `orientation`, and of the part
+    // in view.
+    in property <length> content-size;
+    in property <length> visible-size;
+    // The scroll offset (0 at the start, negative further on), shared with
+    // the Flickable it drives (its `content-y` or `content-x`).
+    in-out property <length> offset;
+
+    property <bool> vertical: root.orientation == Orientation.vertical;
+    property <length> track: root.vertical ? root.height : root.width;
+    property <length> max-offset: max(0px, root.content-size - root.visible-size);
+    property <length> thumb: max(Theme.sizes.control-height, root.track * root.visible-size / root.content-size);
+    property <length> position: (root.track - root.thumb) * (-root.offset / root.max-offset);
+
+    handle := Rectangle {
+        x: root.vertical ? 0 : root.position;
+        y: root.vertical ? root.position : 0;
+        width: root.vertical ? root.width : root.thumb;
+        height: root.vertical ? root.thumb : root.height;
+        border-radius: min(Theme.radii.full, min(self.width, self.height) / 2);
+        background: drag.pressed || drag.has-hover ? Theme.palette.text-muted : Theme.palette.border;
+        animate background { duration: Theme.motion.fast; }
+    }
+
+    drag := TouchArea {
+        property <length> start-offset;
+
+        pointer-event(event) => {
+            if event.kind == PointerEventKind.down {
+                self.start-offset = -root.offset;
+            }
+        }
+        moved => {
+            if self.pressed {
+                root.offset = -clamp(
+                    self.start-offset + (root.vertical ? self.mouse-y - self.pressed-y : self.mouse-x - self.pressed-x) * root.max-offset / (root.track - root.thumb),
+                    0px,
+                    root.max-offset);
+            }
+        }
+    }
+}

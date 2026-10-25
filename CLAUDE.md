@@ -24,8 +24,10 @@ crates/slint-themekit/     the library crate
   ui/theme.slint           the Theme global components read from
   ui/presets.slint         Light and Dark: the only file with literal values
   ui/<component>.slint     one component per file
+  ui/icons.slint           the Icons global: one property per icon
+  ui/icons/                Lucide SVGs, unmodified, and Lucide's LICENSE
   src/lint.rs              finds hard-coded colors, lengths and durations
-  tests/library.rs         runs the lint on ui/
+  tests/library.rs         runs the lint on ui/; icons are Lucide's, of one release
   DESIGN_PRINCIPLES.md     symlink to the root copy, so the package ships it
 crates/themekit-gallery/   the gallery crate
   ui/gallery.slint         the showcase
@@ -40,10 +42,13 @@ cargo clippy --workspace --all-targets
 cargo fmt --all -- --check
 cargo run -p themekit-gallery                # look at the result, in Light and Dark
 cargo package -p slint-themekit --allow-dirty --list   # before a release: ui/ must be listed
+just check_code                              # fmt, clippy and Slint warnings, as CI runs them
+just icons                                   # downloads the icons icons.slint references
 ```
 
-All of them must pass with no warnings. Slint warnings already fail the build
-(`.cargo/config.toml` sets `SLINT_COMPILER_DENY_WARNINGS`).
+All of them must pass with no warnings. A plain build only prints Slint
+warnings; `just slint_check` (part of `just check_code`) builds with
+`SLINT_COMPILER_DENY_WARNINGS` and fails on them.
 
 ## Adding or changing a component
 
@@ -74,6 +79,24 @@ All of them must pass with no warnings. Slint warnings already fail the build
    fails, fix the gallery, never the test.
 7. Run the commands above.
 
+## Adding an icon
+
+Icons come from [Lucide](https://lucide.dev), unmodified, at the release
+pinned in `just/icons.just` (`LUCIDE_VERSION`).
+
+1. Find the icon on lucide.dev and note its name (e.g. `chevron-down`).
+2. Add a property to `Icons` in `ui/icons.slint`, named for what the icon
+   means to the library, pointing at the Lucide file:
+   `out property <image> expand: @image-url("icons/chevron-down.svg");`
+3. Run `just icons`: it downloads every icon `icons.slint` references, and
+   Lucide's LICENSE, and removes the ones no longer referenced.
+4. Show it in the gallery's "Icons" card.
+
+To move to a newer Lucide release, change `LUCIDE_VERSION`, run `just icons`
+and look at the gallery. `tests/library.rs` fails if an icon isn't Lucide's,
+if the icons come from different releases, or if `ui/icons/` and
+`icons.slint` disagree.
+
 ## Changing tokens or presets
 
 - Literal values belong in `presets.slint` only.
@@ -89,3 +112,4 @@ All of them must pass with no warnings. Slint warnings already fail the build
 - Make a component check `Theme.current.name` or `Theme.current.dark`.
 - Add dependencies or runtime code to the `slint-themekit` crate.
 - Add or change a component without updating the gallery.
+- Draw or edit an icon by hand: icons come from Lucide through `just icons`.

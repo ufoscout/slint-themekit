@@ -1,0 +1,145 @@
+import { Theme } from "theme.slint";
+import { StateLayer } from "state-layer.slint";
+
+// Horizontal slider picking a number from `minimum` to `maximum`, in steps
+// of `step` (0 for any value). Controlled: `value` is an input; dragging the
+// handle, clicking the track and the arrow, Home and End keys report the
+// value the user wants through `changed(value)`, already snapped to a step
+// and clamped to the range.
+export component Slider inherits Rectangle {
+    in property <float> value;
+    in property <float> minimum: 0;
+    in property <float> maximum: 100;
+    in property <float> step: 1;
+    in property <bool> enabled: true;
+    callback changed(value: float);
+
+    property <float> span: max(0, root.maximum - root.minimum);
+    property <float> fraction: root.span > 0 ? clamp((root.value - root.minimum) / root.span, 0, 1) : 0;
+    property <length> handle-size: Theme.sizes.indicator;
+    property <length> travel: max(0px, root.width - root.handle-size);
+    property <length> handle-x: root.fraction * root.travel;
+
+    min-width: Theme.sizes.control-height * 3;
+    min-height: Theme.sizes.control-height;
+    horizontal-stretch: 1;
+    vertical-stretch: 0;
+    opacity: root.enabled ? 1 : Theme.states.disabled;
+    forward-focus: focus;
+
+    accessible-role: slider;
+    accessible-value: root.value;
+    accessible-value-minimum: root.minimum;
+    accessible-value-maximum: root.maximum;
+    accessible-value-step: root.step;
+    accessible-enabled: root.enabled;
+    accessible-action-increment => { root.request(root.value + root.step); }
+    accessible-action-decrement => { root.request(root.value - root.step); }
+    accessible-action-set-value(text) => { root.request(text.to-float()); }
+
+    // Report `wanted`, snapped to the step grid and clamped to the range,
+    // unless it is the current value.
+    function request(wanted: float) {
+        if !root.enabled {
+            return;
+        }
+        let snapped = root.step > 0 ? root.minimum + Math.round((wanted - root.minimum) / root.step) * root.step : wanted;
+        let next = clamp(snapped, root.minimum, root.maximum);
+        if next != root.value {
+            root.changed(next);
+        }
+    }
+
+    // The value under a pointer at `x`, from the handle's centre.
+    pure function value-at(x: length) -> float {
+        root.travel > 0 ? root.minimum + clamp((x - root.handle-size / 2) / root.travel, 0, 1) * root.span : root.minimum
+    }
+
+    // The track, and its filled part up to the handle.
+    Rectangle {
+        x: root.handle-size / 2;
+        y: (root.height - self.height) / 2;
+        width: root.travel;
+        height: Theme.sizes.progress-height;
+        border-radius: min(Theme.radii.full, self.height / 2);
+        background: Theme.palette.surface-variant;
+
+        Rectangle {
+            x: 0;
+            width: root.handle-x;
+            height: parent.height;
+            border-radius: parent.border-radius;
+            background: Theme.palette.primary;
+        }
+    }
+
+    Rectangle {
+        x: root.handle-x;
+        y: (root.height - self.height) / 2;
+        width: root.handle-size;
+        height: root.handle-size;
+        border-radius: min(Theme.radii.full, self.height / 2);
+        background: Theme.palette.primary;
+        border-width: focus.has-focus ? Theme.sizes.focus-width : 0px;
+        border-color: Theme.palette.focus-ring;
+
+        StateLayer {
+            border-radius: parent.border-radius;
+            tint: Theme.palette.on-primary;
+            hovered: touch.has-hover;
+            pressed: touch.pressed;
+        }
+    }
+
+    touch := TouchArea {
+        // The value when the drag started: dragging moves it by the
+        // pointer's travel, so grabbing the handle off-centre doesn't jump.
+        property <float> start-value;
+
+        enabled: root.enabled;
+        mouse-cursor: pointer;
+
+        pointer-event(event) => {
+            if event.button != PointerEventButton.left || event.kind != PointerEventKind.down {
+                return;
+            }
+            focus.focus();
+            let on-handle = self.mouse-x >= root.handle-x && self.mouse-x <= root.handle-x + root.handle-size;
+            self.start-value = on-handle ? root.value : root.value-at(self.mouse-x);
+            root.request(self.start-value);
+        }
+        moved => {
+            if self.pressed && root.travel > 0 {
+                root.request(self.start-value + (self.mouse-x - self.pressed-x) / root.travel * root.span);
+            }
+        }
+    }
+
+    focus := FocusScope {
+        x: 0;
+        y: 0;
+        width: 0;
+        height: 0;
+        enabled: root.enabled;
+
+        key-pressed(event) => {
+            if event.text == Key.RightArrow || event.text == Key.UpArrow {
+                root.request(root.value + root.step);
+                return accept;
+            }
+            if event.text == Key.LeftArrow || event.text == Key.DownArrow {
+                root.request(root.value - root.step);
+                return accept;
+            }
+            if event.text == Key.Home {
+                root.request(root.minimum);
+                return accept;
+            }
+            if event.text == Key.End {
+                root.request(root.maximum);
+                return accept;
+            }
+            reject
+        }
+    }
+}

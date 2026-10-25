@@ -1,0 +1,21 @@
+import { Theme } from "theme.slint";
+
+// A popup menu: put `MenuItem`s in it, place it with `x` / `y` (relative to
+// the component it's declared in) and open it with `show()`. Any click, on
+// an item or outside the menu, closes it.
+export component Menu inherits PopupWindow {
+    Rectangle {
+        background: Theme.palette.surface;
+        border-radius: Theme.radii.md;
+        border-width: Theme.sizes.border-width;
+        border-color: Theme.palette.border;
+        drop-shadow-blur: Theme.elevation.blur;
+        drop-shadow-offset-y: Theme.elevation.offset;
+        drop-shadow-color: Theme.palette.shadow;
+
+        VerticalLayout {
+            padding: Theme.spacing.xs;
+            @children
+        }
+    }
+}

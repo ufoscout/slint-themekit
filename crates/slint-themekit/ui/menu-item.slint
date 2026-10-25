@@ -1,0 +1,48 @@
+import { Theme } from "theme.slint";
+import { StateLayer } from "state-layer.slint";
+
+// An entry of a `Menu`. Clicking it reports `clicked()`; the menu closes.
+export component MenuItem inherits Rectangle {
+    in property <string> text;
+    in property <bool> enabled: true;
+    callback clicked();
+
+    min-height: Theme.sizes.control-height;
+    border-radius: Theme.radii.sm;
+    opacity: root.enabled ? 1 : Theme.states.disabled;
+
+    accessible-role: button;
+    accessible-label: root.text;
+    accessible-enabled: root.enabled;
+    accessible-action-default => {
+        if root.enabled {
+            root.clicked();
+        }
+    }
+
+    StateLayer {
+        border-radius: root.border-radius;
+        hovered: touch.has-hover;
+        pressed: touch.pressed;
+    }
+
+    HorizontalLayout {
+        padding-left: Theme.spacing.md;
+        padding-right: Theme.spacing.md;
+
+        Text {
+            text: root.text;
+            accessible-role: none;
+            color: Theme.palette.text;
+            font-family: Theme.typography.family;
+            font-size: Theme.typography.body-size;
+            vertical-alignment: center;
+        }
+    }
+
+    touch := TouchArea {
+        enabled: root.enabled;
+        mouse-cursor: pointer;
+        clicked => { root.clicked(); }
+    }
+}

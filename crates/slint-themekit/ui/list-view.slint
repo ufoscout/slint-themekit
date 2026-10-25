@@ -1,0 +1,52 @@
+import { Theme } from "theme.slint";
+import { ScrollIndicator } from "scroll-indicator.slint";
+
+// Vertically scrolling list for long collections: put one `for` in it,
+// usually of `ListItem`s. Only the rows in view exist at any time, so it
+// stays fast with thousands of rows. `content-y` is the scroll offset (0 at
+// the top, negative further down): assign it to scroll from outside. For
+// rows wider than the list, set `content-width` and the rows' `width` to
+// their width: the list then scrolls sideways too.
+export component ListView inherits Rectangle {
+    // Slint virtualises the rows of a component named `ListView` that has
+    // these five lengths; they also expose the scroll state to the app.
+    in-out property <length> content-y <=> flick.content-y;
+    in-out property <length> content-height <=> flick.content-height;
+    in-out property <length> content-width <=> flick.content-width;
+    out property <length> visible-height: flick.height;
+    out property <length> visible-width: flick.width;
+
+    property <length> track-width: Theme.sizes.scrollbar-width + Theme.spacing.xs;
+    property <bool> wide: flick.content-width > flick.width;
+
+    vertical-stretch: 1;
+    horizontal-stretch: 1;
+    accessible-role: list;
+
+    flick := Flickable {
+        x: 0;
+        y: 0;
+        width: root.width - root.track-width;
+        height: root.height - (root.wide ? root.track-width : 0);
+        @children
+    }
+
+    if flick.content-height > flick.height: ScrollIndicator {
+        x: root.width - self.width;
+        width: Theme.sizes.scrollbar-width;
+        height: flick.height;
+        content-size: flick.content-height;
+        visible-size: flick.height;
+        offset <=> flick.content-y;
+    }
+
+    if root.wide: ScrollIndicator {
+        orientation: Orientation.horizontal;
+        y: root.height - self.height;
+        width: flick.width;
+        height: Theme.sizes.scrollbar-width;
+        content-size: flick.content-width;
+        visible-size: flick.width;
+        offset <=> flick.content-x;
+    }
+}

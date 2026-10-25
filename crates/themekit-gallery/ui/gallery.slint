@@ -3,7 +3,7 @@
 //
 // tests/gallery.rs fails if a component exported by the library is missing here.
 
-import { Theme, ThemePresets, Label, Button, ButtonKind, Checkbox, TextField, Card, Badge, Chip, ProgressBar, NavItem, Divider, ScrollArea, StateLayer, Icons, Tone, TextRole } from "@themekit";
+import { Theme, ThemePresets, Label, Button, ButtonKind, Checkbox, Slider, TextField, Select, Card, Badge, Chip, ProgressBar, Spinner, NavItem, Tab, TabBar, ListView, ListItem, TreeItem, Menu, MenuItem, Dialog, Divider, VerticalDivider, Splitter, ScrollArea, StateLayer, Icons, Tone, TextRole } from "@themekit";
 
 export component Gallery inherits Window {
     title: "slint-themekit gallery";
@@ -12,6 +12,22 @@ export component Gallery inherits Window {
     property <bool> checked: true;
     property <int> chip: 0;
     property <float> progress: 0.4;
+    property <int> tab: 0;
+    property <[string]> documents: ["Report.pdf", "Notes.txt", "Budget.xlsx", "Slides.key", "Photo.png"];
+    property <[bool]> open: [true, true, true, true, true];
+    property <int> document: 0;
+    property <int> list-row: 2;
+    property <int> list-opened: -1;
+    property <string> menu-choice: "nothing yet";
+    property <int> size: 1;
+    property <bool> dialog-open;
+    property <float> volume: 30;
+    // The tree demo: which folders are open, and the selected node.
+    property <[bool]> folders-open: [true, false];
+    property <int> tree-node: 1;
+    // The panes demo: the left pane's width and the top pane's height.
+    property <length> left-pane: Theme.sizes.control-height * 3;
+    property <length> top-pane: Theme.sizes.control-height * 1.5;
 
     HorizontalLayout {
         padding: Theme.spacing.xl;
@@ -46,6 +62,29 @@ export component Gallery inherits Window {
                 Divider { }
                 Label { text: "Inputs"; role: TextRole.heading; }
                 TextField { placeholder: "Type something…"; }
+                HorizontalLayout {
+                    spacing: Theme.spacing.sm;
+                    Select {
+                        options: ["Small", "Medium", "Large"];
+                        current-index: root.size;
+                        selected(index) => { root.size = index; }
+                    }
+                    Select {
+                        options: ["Small", "Medium", "Large"];
+                        placeholder: "Disabled, nothing picked";
+                        enabled: false;
+                    }
+                }
+                HorizontalLayout {
+                    spacing: Theme.spacing.md;
+                    Slider {
+                        value: root.volume;
+                        maximum: 100;
+                        changed(value) => { root.volume = value; }
+                    }
+                    Label { text: "Volume \{root.volume}"; tone: Tone.muted; }
+                    Slider { value: 60; enabled: false; }
+                }
                 Checkbox {
                     text: "Controlled checkbox";
                     checked: root.checked;
@@ -67,6 +106,17 @@ export component Gallery inherits Window {
                 ScrollArea {
                     height: Theme.sizes.control-height * 4;
                     for index in 12: Label { text: "Row \{index + 1}"; }
+                }
+                Label { text: "Wider than the area, so it scrolls sideways too:"; tone: Tone.muted; }
+                ScrollArea {
+                    height: Theme.sizes.control-height * 3;
+                    for row in 6: HorizontalLayout {
+                        spacing: Theme.spacing.md;
+                        for column in 10: Label {
+                            text: "R\{row + 1} C\{column + 1}";
+                            width: Theme.sizes.control-height * 2;
+                        }
+                    }
                 }
             }
 
@@ -91,6 +141,61 @@ export component Gallery inherits Window {
                     Label { text: "Hover or press this surface"; horizontal-alignment: center; }
                     surface := TouchArea { mouse-cursor: pointer; }
                 }
+                Label {
+                    text: "Splitters resize the panes beside them: drag the bars.";
+                    tone: Tone.muted;
+                    wrap: word-wrap;
+                }
+                HorizontalLayout {
+                    height: Theme.sizes.control-height * 4;
+                    Rectangle {
+                        width: root.left-pane;
+                        background: Theme.palette.surface-variant;
+                        Label { text: "Left"; horizontal-alignment: center; }
+                    }
+                    Splitter {
+                        dragged(delta) => {
+                            root.left-pane = clamp(root.left-pane + delta, Theme.sizes.control-height, Theme.sizes.control-height * 8);
+                        }
+                    }
+                    VerticalLayout {
+                        horizontal-stretch: 1;
+                        Rectangle {
+                            height: root.top-pane;
+                            Label { text: "Top"; horizontal-alignment: center; }
+                        }
+                        Splitter {
+                            orientation: Orientation.vertical;
+                            dragged(delta) => {
+                                root.top-pane = clamp(root.top-pane + delta, Theme.sizes.control-height / 2, Theme.sizes.control-height * 3);
+                            }
+                        }
+                        Rectangle {
+                            vertical-stretch: 1;
+                            background: Theme.palette.surface-variant;
+                            Label { text: "Bottom"; horizontal-alignment: center; }
+                        }
+                    }
+                }
+            }
+
+            Card {
+                Label { text: "Icons"; role: TextRole.heading; }
+                Label {
+                    text: "From Lucide. Drawn with colorize, so they take the color of their context.";
+                    tone: Tone.muted;
+                    wrap: word-wrap;
+                }
+                HorizontalLayout {
+                    spacing: Theme.spacing.lg;
+                    alignment: start;
+                    for icon in [Icons.plus, Icons.check, Icons.trash, Icons.list, Icons.chart, Icons.contrast, Icons.close, Icons.expand, Icons.collapsed, Icons.play, Icons.pause, Icons.stop, Icons.copy]: Image {
+                        source: icon;
+                        colorize: Theme.palette.text;
+                        width: Theme.sizes.icon * 1.5;
+                        height: self.width;
+                    }
+                }
             }
         }
 
@@ -111,10 +216,28 @@ export component Gallery inherits Window {
                 }
                 ProgressBar { value: root.progress; }
                 HorizontalLayout {
+                    spacing: Theme.spacing.md;
+                    alignment: start;
+                    Spinner { }
+                    Spinner { tone: Tone.success; }
+                    Label { text: "Working…"; tone: Tone.muted; }
+                }
+                // A status bar: vertical dividers between its items.
+                HorizontalLayout {
+                    spacing: Theme.spacing.sm;
+                    alignment: start;
+                    Label { text: "640 × 480 px"; tone: Tone.muted; }
+                    VerticalDivider { }
+                    Label { text: "12 kB"; tone: Tone.muted; }
+                    VerticalDivider { }
+                    Label { text: "Saved"; tone: Tone.success; }
+                }
+                HorizontalLayout {
                     spacing: Theme.spacing.sm;
                     alignment: start;
                     Button { text: "Less"; kind: ButtonKind.secondary; clicked => { root.progress = max(0, root.progress - 0.1); } }
                     Button { text: "More"; kind: ButtonKind.secondary; clicked => { root.progress = min(1, root.progress + 0.1); } }
+                    Button { text: "Open dialog"; kind: ButtonKind.secondary; clicked => { root.dialog-open = true; } }
                 }
             }
 
@@ -126,12 +249,150 @@ export component Gallery inherits Window {
             }
 
             Card {
+                Label { text: "Tabs"; role: TextRole.heading; }
+                TabBar {
+                    for label[index] in ["Overview", "Activity", "Settings"]: Tab {
+                        text: label;
+                        selected: root.tab == index;
+                        clicked => { root.tab = index; }
+                    }
+                }
+                Label { text: "Closable, wrapping when they don't fit:"; tone: Tone.muted; }
+                // One `if` per document: a closed tab must leave the layout,
+                // and Slint can't filter a model.
+                TabBar {
+                    width: Theme.sizes.control-height * 8;
+                    if root.open[0]: Tab { text: root.documents[0]; closable: true; close-label: "Close " + self.text; selected: root.document == 0; clicked => { root.document = 0; } close-requested => { root.open[0] = false; } }
+                    if root.open[1]: Tab { text: root.documents[1]; closable: true; close-label: "Close " + self.text; selected: root.document == 1; clicked => { root.document = 1; } close-requested => { root.open[1] = false; } }
+                    if root.open[2]: Tab { text: root.documents[2]; closable: true; close-label: "Close " + self.text; selected: root.document == 2; clicked => { root.document = 2; } close-requested => { root.open[2] = false; } }
+                    if root.open[3]: Tab { text: root.documents[3]; closable: true; close-label: "Close " + self.text; selected: root.document == 3; clicked => { root.document = 3; } close-requested => { root.open[3] = false; } }
+                    if root.open[4]: Tab { text: root.documents[4]; closable: true; close-label: "Close " + self.text; selected: root.document == 4; clicked => { root.document = 4; } close-requested => { root.open[4] = false; } }
+                }
+                Button {
+                    text: "Reopen all";
+                    kind: ButtonKind.ghost;
+                    clicked => { root.open = [true, true, true, true, true]; }
+                }
+            }
+
+            Card {
+                Label { text: "Lists"; role: TextRole.heading; }
+                Label {
+                    text: "A thousand items, of which only those in view exist. Click to select, double-click to open.";
+                    tone: Tone.muted;
+                    wrap: word-wrap;
+                }
+                ListView {
+                    height: Theme.sizes.control-height * 5;
+                    for index in 1000: ListItem {
+                        index: index;
+                        selected: root.list-row == index;
+                        clicked => { root.list-row = index; }
+                        double-clicked => { root.list-opened = index; }
+                        Label { text: "Item \{index + 1}"; horizontal-stretch: 1; }
+                        Label { text: Math.mod(index * 7, 100) + " kB"; tone: Tone.muted; }
+                    }
+                }
+                Label {
+                    text: root.list-opened < 0 ? "Nothing opened yet." : "Opened item \{root.list-opened + 1}.";
+                    tone: Tone.muted;
+                }
+                Label { text: "Rows wider than the list scroll sideways:"; tone: Tone.muted; }
+                wide-list := ListView {
+                    height: Theme.sizes.control-height * 3;
+                    content-width: Theme.sizes.control-height * 16;
+                    for index in 50: ListItem {
+                        index: index;
+                        width: wide-list.content-width;
+                        Label { text: "Row \{index + 1}: a line much longer than the list is wide, like code"; }
+                    }
+                }
+                Divider { }
+                Label { text: "A tree, as rows with a depth: click a chevron to open or close a folder."; tone: Tone.muted; wrap: word-wrap; }
+                VerticalLayout {
+                    TreeItem {
+                        text: "Documents";
+                        expandable: true;
+                        expanded: root.folders-open[0];
+                        selected: root.tree-node == 0;
+                        clicked => { root.tree-node = 0; }
+                        toggled => { root.folders-open[0] = !root.folders-open[0]; }
+                        Badge { text: "2"; }
+                    }
+                    if root.folders-open[0]: TreeItem {
+                        text: "Report.pdf";
+                        level: 1;
+                        selected: root.tree-node == 1;
+                        clicked => { root.tree-node = 1; }
+                    }
+                    if root.folders-open[0]: TreeItem {
+                        text: "Notes.txt";
+                        level: 1;
+                        selected: root.tree-node == 2;
+                        clicked => { root.tree-node = 2; }
+                    }
+                    TreeItem {
+                        text: "Pictures";
+                        expandable: true;
+                        expanded: root.folders-open[1];
+                        selected: root.tree-node == 3;
+                        clicked => { root.tree-node = 3; }
+                        toggled => { root.folders-open[1] = !root.folders-open[1]; }
+                        Badge { text: "1"; }
+                    }
+                    if root.folders-open[1]: TreeItem {
+                        text: "Photo.png";
+                        level: 1;
+                        selected: root.tree-node == 4;
+                        clicked => { root.tree-node = 4; }
+                    }
+                }
+                Divider { }
+                HorizontalLayout {
+                    spacing: Theme.spacing.sm;
+                    alignment: start;
+                    open-menu := Button {
+                        text: "Open menu";
+                        kind: ButtonKind.secondary;
+                        clicked => { menu.show(); }
+                    }
+                    Label { text: "Chosen: " + root.menu-choice; tone: Tone.muted; }
+                }
+            }
+
+            Card {
                 Label { text: "Typography"; role: TextRole.heading; }
                 Label { text: "Title"; role: TextRole.title; }
                 Label { text: "Heading"; role: TextRole.heading; }
                 Label { text: "Body text"; }
                 Label { text: "Caption"; role: TextRole.caption; tone: Tone.muted; }
             }
+        }
+    }
+
+    // Declared at the window's root, so `x` / `y` are window coordinates.
+    menu := Menu {
+        x: open-menu.absolute-position.x;
+        y: open-menu.absolute-position.y + open-menu.height;
+        MenuItem { text: "Duplicate"; clicked => { root.menu-choice = "Duplicate"; } }
+        MenuItem { text: "Rename"; clicked => { root.menu-choice = "Rename"; } }
+        MenuItem { text: "Archive (disabled)"; enabled: false; }
+    }
+
+    if root.dialog-open: Dialog {
+        width: root.width;
+        height: root.height;
+        title: "Delete Report.pdf?";
+        Label {
+            text: "The file is removed for good.";
+            tone: Tone.muted;
+            wrap: word-wrap;
+        }
+        HorizontalLayout {
+            spacing: Theme.spacing.sm;
+            alignment: end;
+            Button { text: "Cancel"; kind: ButtonKind.secondary; clicked => { root.dialog-open = false; } }
+            Button { text: "Delete"; kind: ButtonKind.danger; clicked => { root.dialog-open = false; } }
         }
     }
 }

@@ -24,7 +24,8 @@ component never checks which theme is active: `Theme.current.name` and
   the actual size, weight and color from `Theme.font-size()`,
   `Theme.font-weight()` and `Theme.tone-color()`.
 - Icons are monochrome and drawn with `colorize:`, so they take the color of
-  their context.
+  their context. They all come from one icon set,
+  [Lucide](https://lucide.dev), unmodified, so they share one style.
 - A new token is added only when no existing role expresses the need.
 
 ## 3. A theme is more than a palette
@@ -126,5 +127,4 @@ outside. It shows:
 - every variant and state;
 - every preset;
 
-and it is interactive. Slint compiler warnings fail the build
-(`.cargo/config.toml`).
+and it is interactive. Slint compiler warnings fail `just check_code`.

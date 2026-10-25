@@ -1,9 +1,20 @@
-// Monochrome icons. Draw them with `colorize:` so they follow the palette.
+// Monochrome icons from Lucide (https://lucide.dev, ISC license, see
+// icons/LICENSE). Each property is named for its meaning and points at the
+// Lucide icon that draws it. The SVGs are downloaded unmodified by
+// `just icons`, which fetches every icon referenced here. Draw them with
+// `colorize:` so they follow the palette.
 export global Icons {
     out property <image> plus: @image-url("icons/plus.svg");
     out property <image> check: @image-url("icons/check.svg");
-    out property <image> trash: @image-url("icons/trash.svg");
+    out property <image> trash: @image-url("icons/trash-2.svg");
     out property <image> list: @image-url("icons/list.svg");
-    out property <image> chart: @image-url("icons/chart.svg");
+    out property <image> chart: @image-url("icons/chart-no-axes-column.svg");
     out property <image> contrast: @image-url("icons/contrast.svg");
+    out property <image> close: @image-url("icons/x.svg");
+    out property <image> expand: @image-url("icons/chevron-down.svg");
+    out property <image> collapsed: @image-url("icons/chevron-right.svg");
+    out property <image> play: @image-url("icons/play.svg");
+    out property <image> pause: @image-url("icons/pause.svg");
+    out property <image> stop: @image-url("icons/square.svg");
+    out property <image> copy: @image-url("icons/copy.svg");
 }

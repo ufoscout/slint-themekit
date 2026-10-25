@@ -1,0 +1,84 @@
+import { Theme } from "theme.slint";
+import { Icons } from "icons.slint";
+import { StateLayer } from "state-layer.slint";
+import { Menu } from "menu.slint";
+import { MenuItem } from "menu-item.slint";
+
+// A dropdown that picks one of `options`. Controlled: `current-index` is an
+// input (-1 shows the `placeholder`), and picking an option reports
+// `selected(index)`.
+export component Select inherits Rectangle {
+    in property <[string]> options;
+    in property <int> current-index: -1;
+    in property <string> placeholder;
+    in property <bool> enabled: true;
+    callback selected(index: int);
+
+    property <bool> has-value: root.current-index >= 0 && root.current-index < root.options.length;
+
+    min-height: Theme.sizes.control-height;
+    horizontal-stretch: 1;
+    border-radius: Theme.radii.md;
+    background: Theme.palette.surface;
+    border-width: Theme.sizes.border-width;
+    border-color: Theme.palette.border;
+    opacity: root.enabled ? 1 : Theme.states.disabled;
+
+    accessible-role: combobox;
+    accessible-value: root.has-value ? root.options[root.current-index] : "";
+    accessible-placeholder-text: root.placeholder;
+    accessible-enabled: root.enabled;
+    accessible-action-default => {
+        if root.enabled {
+            popup.show();
+        }
+    }
+
+    StateLayer {
+        border-radius: root.border-radius;
+        hovered: touch.has-hover;
+        pressed: touch.pressed;
+    }
+
+    HorizontalLayout {
+        padding-left: Theme.spacing.md;
+        padding-right: Theme.spacing.sm;
+        spacing: Theme.spacing.sm;
+
+        Text {
+            text: root.has-value ? root.options[root.current-index] : root.placeholder;
+            accessible-role: none;
+            color: root.has-value ? Theme.palette.text : Theme.palette.text-muted;
+            font-family: Theme.typography.family;
+            font-size: Theme.typography.body-size;
+            vertical-alignment: center;
+            horizontal-stretch: 1;
+            overflow: elide;
+        }
+        VerticalLayout {
+            alignment: center;
+            Image {
+                source: Icons.expand;
+                colorize: Theme.palette.text-muted;
+                width: Theme.sizes.icon;
+                height: Theme.sizes.icon;
+            }
+        }
+    }
+
+    touch := TouchArea {
+        enabled: root.enabled;
+        mouse-cursor: pointer;
+        clicked => { popup.show(); }
+    }
+
+    popup := Menu {
+        x: 0;
+        y: root.height;
+        width: root.width;
+        for option[index] in root.options: MenuItem {
+            text: option;
+            clicked => { root.selected(index); }
+        }
+    }
+}

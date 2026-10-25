@@ -1,0 +1,14 @@
+import { Theme } from "theme.slint";
+
+// A row of `Tab`s that wraps onto more lines when they don't fit, so every
+// tab stays visible. Put the tabs inside it.
+export component TabBar inherits Rectangle {
+    accessible-role: tab-list;
+
+    FlexboxLayout {
+        flex-wrap: wrap;
+        spacing-horizontal: Theme.spacing.xs;
+        spacing-vertical: Theme.spacing.xs;
+        @children
+    }
+}

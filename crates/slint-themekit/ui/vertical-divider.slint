@@ -1,0 +1,8 @@
+import { Theme } from "theme.slint";
+
+// Vertical hairline separator, between side-by-side content such as the
+// items of a toolbar or a status bar. A layout gives it its full height.
+export component VerticalDivider inherits Rectangle {
+    width: Theme.sizes.border-width;
+    background: Theme.palette.border;
+}
