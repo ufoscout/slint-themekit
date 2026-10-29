@@ -1,15 +1,31 @@
 import { Theme } from "theme.slint";
+import { ControlSize } from "tokens.slint";
 
-// Single-line text input with placeholder and focus ring.
+// Single-line text input with placeholder and focus ring, in three sizes
+// like `Button`, whose heights it shares. Its width never
+// follows its text: a text too long to fit scrolls with the cursor while the
+// field has focus, and is cut off with "…" while it doesn't. `overflowing`
+// tells the app the text doesn't fit, e.g. to show it whole in a `Tooltip`:
+//
+//     path-field := TextField {
+//         text <=> path;
+//         if path-field.overflowing: Tooltip { TooltipText { text: path; } }
+//     }
 export component TextField inherits Rectangle {
     in-out property <string> text <=> input.text;
     in property <string> placeholder;
     in property <bool> enabled <=> input.enabled;
+    in property <ControlSize> size: ControlSize.medium;
     out property <bool> has-focus: input.has-focus;
+    // The text is wider than the field.
+    out property <bool> overflowing: input.preferred-width > viewport.width;
     callback accepted(text: string);
     callback edited(text: string);
 
-    min-height: Theme.sizes.control-height;
+    min-width: Theme.control-height(root.size);
+    min-height: Theme.control-height(root.size);
+    // One line tall: the text isn't laid out, so nothing else caps it.
+    max-height: Theme.control-height(root.size);
     horizontal-stretch: 1;
     clip: true;
     border-radius: Theme.radii.md;
@@ -18,32 +34,71 @@ export component TextField inherits Rectangle {
     border-color: input.has-focus ? Theme.palette.focus-ring : Theme.palette.border;
     opacity: root.enabled ? 1 : Theme.states.disabled;
 
-    HorizontalLayout {
-        padding-left: Theme.spacing.md;
-        padding-right: Theme.spacing.md;
+    // The room inside the padding. The text is placed in it, not laid out,
+    // so its width doesn't become the field's minimum.
+    viewport := Rectangle {
+        x: Theme.field-padding(root.size);
+        width: root.width - Theme.field-padding(root.size) * 2;
+        height: 100%;
+        clip: true;
 
         input := TextInput {
+            // How far the text is scrolled left (zero or less), so the
+            // cursor stays in view.
+            property <length> scroll;
+
+            x: min(0px, max(parent.width - self.width, self.scroll));
+            width: max(parent.width, self.preferred-width + self.text-cursor-width);
+            height: 100%;
+            // Unfocused, the cut-off copy below shows a text that doesn't fit.
+            opacity: self.has-focus || !root.overflowing ? 1 : 0;
             vertical-alignment: center;
             single-line: true;
             accessible-placeholder-text: root.placeholder;
             color: Theme.palette.text;
             font-family: Theme.typography.family;
-            font-size: Theme.typography.body-size;
+            font-size: Theme.control-font-size(root.size);
             selection-background-color: Theme.palette.primary-container;
             selection-foreground-color: Theme.palette.on-primary-container;
             accepted => { root.accepted(self.text); }
             edited => { root.edited(self.text); }
+            cursor-position-changed(position) => {
+                if position.x + self.scroll < 0 {
+                    self.scroll = -position.x;
+                } else if position.x + self.scroll > parent.width - self.text-cursor-width {
+                    self.scroll = parent.width - self.text-cursor-width - position.x;
+                }
+            }
+            // Back to the start, where the cut-off copy begins too.
+            changed has-focus => {
+                if !self.has-focus {
+                    self.scroll = 0;
+                }
+            }
         }
-    }
 
-    if root.text == "": Text {
-        x: Theme.spacing.md;
-        height: root.height;
-        text: root.placeholder;
-        accessible-role: none;
-        color: Theme.palette.text-muted;
-        font-family: Theme.typography.family;
-        font-size: Theme.typography.body-size;
-        vertical-alignment: center;
+        if !input.has-focus && root.overflowing: Text {
+            width: 100%;
+            height: 100%;
+            text: root.text;
+            overflow: elide;
+            accessible-role: none;
+            color: Theme.palette.text;
+            font-family: Theme.typography.family;
+            font-size: Theme.control-font-size(root.size);
+            vertical-alignment: center;
+        }
+
+        if root.text == "": Text {
+            width: 100%;
+            height: 100%;
+            text: root.placeholder;
+            overflow: elide;
+            accessible-role: none;
+            color: Theme.palette.text-muted;
+            font-family: Theme.typography.family;
+            font-size: Theme.control-font-size(root.size);
+            vertical-alignment: center;
+        }
     }
 }

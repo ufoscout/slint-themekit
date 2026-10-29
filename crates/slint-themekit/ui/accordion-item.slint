@@ -1,0 +1,89 @@
+import { Theme } from "theme.slint";
+import { Icons } from "icons.slint";
+import { StateLayer } from "state-layer.slint";
+import { Divider } from "divider.slint";
+
+// A section that shows its children only while `expanded`, under a header
+// with its `title`. Stack several for an accordion. Controlled: clicking the
+// header reports `toggled()`, and the app decides which sections are open
+// (one at a time, or any number).
+export component AccordionItem inherits Rectangle {
+    in property <string> title;
+    in property <bool> expanded;
+    callback toggled();
+
+    VerticalLayout {
+        Rectangle {
+            min-height: Theme.sizes.control-height;
+            border-radius: Theme.radii.sm;
+            accessible-role: button;
+            accessible-label: root.title;
+            accessible-expandable: true;
+            accessible-expanded: root.expanded;
+            accessible-action-default => { root.toggled(); }
+            accessible-action-expand => { root.toggled(); }
+
+            StateLayer {
+                border-radius: parent.border-radius;
+                hovered: touch.has-hover;
+                pressed: touch.pressed;
+            }
+
+            // Laid out like a `TreeItem`: the chevron, then the title.
+            HorizontalLayout {
+                padding-left: Theme.spacing.sm;
+                padding-right: Theme.spacing.sm;
+                spacing: Theme.spacing.xs;
+
+                VerticalLayout {
+                    alignment: center;
+                    Image {
+                        source: root.expanded ? Icons.expand : Icons.collapsed;
+                        colorize: Theme.palette.text-muted;
+                        width: Theme.sizes.icon;
+                        height: Theme.sizes.icon;
+                        accessible-role: none;
+                    }
+                }
+                Text {
+                    text: root.title;
+                    accessible-role: none;
+                    color: Theme.palette.text;
+                    font-family: Theme.typography.family;
+                    font-size: Theme.typography.body-size;
+                    font-weight: Theme.typography.strong-weight;
+                    vertical-alignment: center;
+                    horizontal-stretch: 1;
+                    overflow: elide;
+                }
+            }
+
+            touch := TouchArea {
+                mouse-cursor: pointer;
+                clicked => { root.toggled(); }
+            }
+        }
+
+        // Unrolls to the content's height, and is hidden once rolled up.
+        Rectangle {
+            height: root.expanded ? content.preferred-height : 0px;
+            visible: self.height > 0;
+            clip: true;
+            animate height { duration: Theme.motion.fast; easing: ease-out; }
+
+            content := VerticalLayout {
+                y: 0;
+                height: self.preferred-height;
+                // Lined up with the title, past the chevron.
+                padding-left: Theme.spacing.sm + Theme.sizes.icon + Theme.spacing.xs;
+                padding-right: Theme.spacing.sm;
+                padding-top: Theme.spacing.xs;
+                padding-bottom: Theme.spacing.md;
+                spacing: Theme.spacing.sm;
+                @children
+            }
+        }
+
+        Divider { }
+    }
+}

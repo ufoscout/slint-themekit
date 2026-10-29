@@ -3,7 +3,7 @@
 //
 // tests/gallery.rs fails if a component exported by the library is missing here.
 
-import { Theme, ThemePresets, Label, Button, ButtonKind, Checkbox, Slider, NumberField, TextField, TooltipText, Select, Card, Badge, Chip, ProgressBar, Spinner, NavItem, Tab, TabBar, ListView, ListItem, TreeItem, Menu, MenuItem, Dialog, Divider, VerticalDivider, Splitter, ResizeGrip, ScrollArea, StateLayer, Shadow, Icons, Tone, TextRole } from "@themekit";
+import { Theme, ThemePresets, Label, Button, ButtonKind, Checkbox, Radio, Switch, Slider, NumberField, TextField, TooltipText, Select, Card, Badge, Chip, ProgressBar, Spinner, NavItem, Tab, TabBar, ListView, ListItem, TreeItem, Menu, MenuItem, Dialog, Popover, Alert, Toast, ToastStack, AccordionItem, Table, TableCell, TableCellKind, Divider, VerticalDivider, Splitter, ResizeGrip, ScrollArea, StateLayer, Shadow, Icons, Tone, TextRole, ControlSize } from "@themekit";
 
 export component Gallery inherits Window {
     title: "slint-themekit gallery";
@@ -26,6 +26,7 @@ export component Gallery inherits Window {
     property <bool> dialog-open;
     property <float> volume: 30;
     property <float> copies: 3;
+    property <string> long-text: "A text too long for its field: cut off until you click it, then it scrolls with the cursor";
     // The tree demo: which folders are open, and the selected node.
     property <[bool]> folders-open: [true, false];
     property <int> tree-node: 1;
@@ -35,6 +36,31 @@ export component Gallery inherits Window {
     // The resize grip demo: the box's size.
     property <length> box-width: Theme.sizes.control-height * 6;
     property <length> box-height: Theme.sizes.control-height * 2;
+    property <bool> notifications: true;
+    // The closable alert, and which toasts are shown.
+    property <bool> alert-open: true;
+    property <[bool]> toasts: [false, false, false];
+    // The popover's settings.
+    property <bool> grid: true;
+    property <float> zoom: 100;
+    // The open accordion section, -1 for none.
+    property <int> section: 0;
+    // The table demo: its rows (icon, name, kind, size, copies, Open), the
+    // selected one and the last opened one.
+    property <TableCell> open-cell: { kind: TableCellKind.button, image: Icons.open, text: "Open" };
+    property <[[TableCell]]> files: [
+        [{ kind: TableCellKind.image, image: Icons.copy, colorize: Theme.palette.text-muted, text: "Document" }, { text: "Report.pdf" }, { text: "PDF document" }, { text: "1.2 MB" }, { kind: TableCellKind.number, value: 2, maximum: 10, step: 1 }, root.open-cell],
+        [{ kind: TableCellKind.image, image: Icons.list, colorize: Theme.palette.text-muted, text: "Text" }, { text: "Notes.txt" }, { text: "Plain text" }, { text: "4 kB" }, { kind: TableCellKind.number, value: 1, maximum: 10, step: 1 }, root.open-cell],
+        [{ kind: TableCellKind.image, image: Icons.chart, colorize: Theme.palette.text-muted, text: "Spreadsheet" }, { text: "Budget.xlsx" }, { text: "Spreadsheet" }, { text: "86 kB" }, { kind: TableCellKind.number, value: 3, maximum: 10, step: 1 }, root.open-cell],
+        [{ kind: TableCellKind.image, image: Icons.play, colorize: Theme.palette.text-muted, text: "Presentation" }, { text: "Slides.key" }, { text: "Presentation" }, { text: "18.4 MB" }, { kind: TableCellKind.number, value: 1, maximum: 10, step: 1 }, root.open-cell],
+        [{ kind: TableCellKind.image, image: Icons.inventory, colorize: Theme.palette.text-muted, text: "Archive" }, { text: "Archive with a name far too long for its column.zip" }, { text: "ZIP archive, split into three volumes" }, { text: "212 MB" }, { kind: TableCellKind.number, value: 0, maximum: 10, step: 1 }, root.open-cell],
+        [{ kind: TableCellKind.image, image: Icons.copy, colorize: Theme.palette.text-muted, text: "Document" }, { text: "Invoice-0042.pdf" }, { text: "PDF document" }, { text: "96 kB" }, { kind: TableCellKind.number, value: 1, maximum: 10, step: 1 }, root.open-cell],
+        [{ kind: TableCellKind.image, image: Icons.list, colorize: Theme.palette.text-muted, text: "Text" }, { text: "Draft.md" }, { text: "Markdown" }, { text: "12 kB" }, { kind: TableCellKind.number, value: 1, maximum: 10, step: 1 }, root.open-cell],
+    ];
+    property <int> file-row: 0;
+    property <int> file-opened: -1;
+    // The size of the table's number fields and buttons.
+    property <ControlSize> file-size: ControlSize.medium;
 
     // Taller than most screens: the window opens at the columns' width and
     // a height that fits, and scrolls the rest.
@@ -53,8 +79,11 @@ export component Gallery inherits Window {
                 HorizontalLayout {
                     spacing: Theme.spacing.sm;
                     alignment: start;
-                    Chip { text: ThemePresets.light.name; selected: !Theme.current.dark; clicked => { Theme.current = ThemePresets.light; } }
-                    Chip { text: ThemePresets.dark.name; selected: Theme.current.dark; clicked => { Theme.current = ThemePresets.dark; } }
+                    for theme in [ThemePresets.light, ThemePresets.dark, ThemePresets.sunset, ThemePresets.terminal]: Chip {
+                        text: theme.name;
+                        selected: Theme.current.name == theme.name;
+                        clicked => { Theme.current = theme; }
+                    }
                 }
 
                 Card {
@@ -77,7 +106,15 @@ export component Gallery inherits Window {
                     }
                     Divider { }
                     Label { text: "Inputs"; role: TextRole.heading; }
-                    TextField { placeholder: "Type something…"; }
+                    HorizontalLayout {
+                        spacing: Theme.spacing.sm;
+                        TextField { placeholder: "Type something…"; }
+                        // Too long for the field: cut off, and whole in a tooltip.
+                        long-field := TextField {
+                            text <=> root.long-text;
+                            if long-field.overflowing: Tooltip { TooltipText { text: root.long-text; } }
+                        }
+                    }
                     HorizontalLayout {
                         spacing: Theme.spacing.sm;
                         Select {
@@ -123,12 +160,70 @@ export component Gallery inherits Window {
                         toggled => { root.checked = !root.checked; }
                     }
                     HorizontalLayout {
+                        spacing: Theme.spacing.lg;
+                        alignment: start;
+                        Switch {
+                            text: "Notifications";
+                            checked: root.notifications;
+                            toggled => { root.notifications = !root.notifications; }
+                        }
+                        Switch { text: "Disabled"; checked: true; enabled: false; }
+                    }
+                    // The same choice as the first Select above.
+                    HorizontalLayout {
+                        spacing: Theme.spacing.lg;
+                        alignment: start;
+                        for label[index] in ["Small", "Medium", "Large"]: Radio {
+                            text: label;
+                            checked: root.size == index;
+                            clicked => { root.size = index; }
+                        }
+                        Radio { text: "Disabled"; enabled: false; }
+                    }
+                    HorizontalLayout {
                         spacing: Theme.spacing.sm;
                         alignment: start;
                         for label[index] in ["Day", "Week", "Month"]: Chip {
                             text: label;
                             selected: root.chip == index;
                             clicked => { root.chip = index; }
+                        }
+                    }
+                }
+
+                Card {
+                    Label { text: "Sizes"; role: TextRole.heading; }
+                    Label {
+                        text: "Buttons and fields come small, medium and large. Controls of a size are equally tall, so a row of them lines up.";
+                        tone: Tone.muted;
+                        wrap: word-wrap;
+                    }
+                    for row in [
+                        { size: ControlSize.small, name: "Small" },
+                        { size: ControlSize.medium, name: "Medium" },
+                        { size: ControlSize.large, name: "Large" },
+                    ]: HorizontalLayout {
+                        spacing: Theme.spacing.sm;
+                        Button { text: row.name; size: row.size; }
+                        Button {
+                            icon: Icons.plus;
+                            kind: ButtonKind.secondary;
+                            size: row.size;
+                            accessible-label: "Add";
+                        }
+                        TextField { placeholder: row.name + " field"; size: row.size; }
+                        Select {
+                            options: ["Day", "Week", "Month"];
+                            current-index: root.chip;
+                            size: row.size;
+                            selected(index) => { root.chip = index; }
+                        }
+                        NumberField {
+                            width: Theme.control-height(row.size) * 2;
+                            value: root.copies;
+                            maximum: 10;
+                            size: row.size;
+                            changed(value) => { root.copies = value; }
                         }
                     }
                 }
@@ -149,6 +244,50 @@ export component Gallery inherits Window {
                                 width: Theme.sizes.control-height * 2;
                             }
                         }
+                    }
+                }
+
+                Card {
+                    Label { text: "Table"; role: TextRole.heading; }
+                    Label {
+                        text: "Columns with a width keep it, the others share the rest. Cells hold texts (hover a cut-off one to read it, a wrapping column grows its row), numbers to drag or type, images and buttons, in three sizes. Click a row to select it; double-click it or click Open to open it.";
+                        tone: Tone.muted;
+                        wrap: word-wrap;
+                    }
+                    HorizontalLayout {
+                        spacing: Theme.spacing.lg;
+                        alignment: start;
+                        for choice in [
+                            { size: ControlSize.small, name: "Small" },
+                            { size: ControlSize.medium, name: "Medium" },
+                            { size: ControlSize.large, name: "Large" },
+                        ]: Radio {
+                            text: choice.name;
+                            checked: root.file-size == choice.size;
+                            clicked => { root.file-size = choice.size; }
+                        }
+                    }
+                    Table {
+                        height: Theme.sizes.control-height * 6;
+                        columns: [
+                            { width: Theme.sizes.icon },
+                            { title: "Name" },
+                            { title: "Kind", width: Theme.sizes.control-height * 3, wrap: true },
+                            { title: "Size", width: Theme.sizes.control-height * 2, alignment: TextHorizontalAlignment.right },
+                            { title: "Copies", width: Theme.sizes.control-height * 2 },
+                            { width: Theme.control-height(root.file-size) },
+                        ];
+                        rows: root.files;
+                        size: root.file-size;
+                        selected-row: root.file-row;
+                        row-clicked(row) => { root.file-row = row; }
+                        row-double-clicked(row) => { root.file-opened = row; }
+                        number-changed(row, column, value) => { root.files[row][column].value = value; }
+                        button-clicked(row) => { root.file-opened = row; }
+                    }
+                    Label {
+                        text: root.file-opened < 0 ? "Nothing opened yet." : "Opened " + root.files[root.file-opened][1].text + " (copies: \{root.files[root.file-opened][4].value}).";
+                        tone: Tone.muted;
                     }
                 }
 
@@ -271,7 +410,7 @@ export component Gallery inherits Window {
                     HorizontalLayout {
                         spacing: Theme.spacing.lg;
                         alignment: start;
-                        for icon in [Icons.plus, Icons.check, Icons.trash, Icons.list, Icons.chart, Icons.contrast, Icons.close, Icons.expand, Icons.collapsed, Icons.play, Icons.pause, Icons.stop, Icons.copy, Icons.open, Icons.save, Icons.inventory, Icons.magic]: Image {
+                        for icon in [Icons.plus, Icons.check, Icons.trash, Icons.list, Icons.chart, Icons.contrast, Icons.close, Icons.expand, Icons.collapsed, Icons.play, Icons.pause, Icons.stop, Icons.copy, Icons.open, Icons.save, Icons.inventory, Icons.magic, Icons.info, Icons.success, Icons.warning, Icons.danger]: Image {
                             source: icon;
                             colorize: Theme.palette.text;
                             width: Theme.sizes.icon * 1.5;
@@ -314,12 +453,29 @@ export component Gallery inherits Window {
                         VerticalDivider { }
                         Label { text: "Saved"; tone: Tone.success; }
                     }
+                    Alert { title: "Heads up"; text: "An alert is about the content around it, in the tone of what it says."; }
+                    Alert { tone: Tone.success; text: "Your changes were saved."; }
+                    Alert { tone: Tone.warning; title: "Storage almost full"; text: "Free some space to keep saving files."; }
+                    if root.alert-open: Alert {
+                        tone: Tone.danger;
+                        title: "Sync failed";
+                        text: "Close this alert with its ×.";
+                        closable: true;
+                        close-label: "Dismiss";
+                        close-requested => { root.alert-open = false; }
+                    }
+                    if !root.alert-open: Button {
+                        text: "Show the closed alert again";
+                        kind: ButtonKind.ghost;
+                        clicked => { root.alert-open = true; }
+                    }
                     HorizontalLayout {
                         spacing: Theme.spacing.sm;
                         alignment: start;
                         Button { text: "Less"; kind: ButtonKind.secondary; clicked => { root.progress = max(0, root.progress - 0.1); } }
                         Button { text: "More"; kind: ButtonKind.secondary; clicked => { root.progress = min(1, root.progress + 0.1); } }
                         Button { text: "Open dialog"; kind: ButtonKind.secondary; clicked => { root.dialog-open = true; } }
+                        Button { text: "Show toasts"; kind: ButtonKind.secondary; clicked => { root.toasts = [true, true, true]; } }
                     }
                 }
 
@@ -354,6 +510,48 @@ export component Gallery inherits Window {
                         text: "Reopen all";
                         kind: ButtonKind.ghost;
                         clicked => { root.open = [true, true, true, true, true]; }
+                    }
+                }
+
+                Card {
+                    Label { text: "Accordion"; role: TextRole.heading; }
+                    // One section open at a time: opening one closes the others.
+                    VerticalLayout {
+                        AccordionItem {
+                            title: "One open at a time";
+                            expanded: root.section == 0;
+                            toggled => { root.section = root.section == 0 ? -1 : 0; }
+                            Label {
+                                text: "The sections only report toggled(). The gallery keeps the open one's index, so opening a section closes the others.";
+                                tone: Tone.muted;
+                                wrap: word-wrap;
+                            }
+                        }
+                        AccordionItem {
+                            title: "Any content";
+                            expanded: root.section == 1;
+                            toggled => { root.section = root.section == 1 ? -1 : 1; }
+                            Switch {
+                                text: "Notifications";
+                                checked: root.notifications;
+                                toggled => { root.notifications = !root.notifications; }
+                            }
+                            Checkbox {
+                                text: "Controlled checkbox";
+                                checked: root.checked;
+                                toggled => { root.checked = !root.checked; }
+                            }
+                        }
+                        AccordionItem {
+                            title: "Themed motion";
+                            expanded: root.section == 2;
+                            toggled => { root.section = root.section == 2 ? -1 : 2; }
+                            Label {
+                                text: "Sections unroll at the theme's fast motion; in Terminal, which has none, they open at once.";
+                                tone: Tone.muted;
+                                wrap: word-wrap;
+                            }
+                        }
                     }
                 }
 
@@ -448,6 +646,11 @@ export component Gallery inherits Window {
                             kind: ButtonKind.secondary;
                             clicked => { menu.show(); }
                         }
+                        open-popover := Button {
+                            text: "Open popover";
+                            kind: ButtonKind.secondary;
+                            clicked => { popover.show(); }
+                        }
                         Label { text: "Chosen: " + root.menu-choice; tone: Tone.muted; }
                     }
                 }
@@ -472,6 +675,27 @@ export component Gallery inherits Window {
         MenuItem { text: "Archive (disabled)"; enabled: false; }
     }
 
+    // Like the menu, at the button's window coordinates.
+    popover := Popover {
+        x: open-popover.absolute-position.x;
+        y: open-popover.absolute-position.y + open-popover.height;
+        width: Theme.sizes.control-height * 7;
+        Label { text: "View"; role: TextRole.heading; }
+        Switch {
+            text: "Show grid";
+            checked: root.grid;
+            toggled => { root.grid = !root.grid; }
+        }
+        Label { text: "Zoom \{Math.round(root.zoom)} %"; tone: Tone.muted; }
+        Slider {
+            value: root.zoom;
+            minimum: 50;
+            maximum: 200;
+            changed(value) => { root.zoom = value; }
+        }
+        Button { text: "Done"; clicked => { popover.close(); } }
+    }
+
     if root.dialog-open: Dialog {
         width: root.width;
         height: root.height;
@@ -486,6 +710,33 @@ export component Gallery inherits Window {
             alignment: end;
             Button { text: "Cancel"; kind: ButtonKind.secondary; clicked => { root.dialog-open = false; } }
             Button { text: "Delete"; kind: ButtonKind.danger; clicked => { root.dialog-open = false; } }
+        }
+    }
+
+    // Over everything else, sized like the window.
+    ToastStack {
+        width: root.width;
+        height: root.height;
+        if root.toasts[0]: Toast {
+            tone: Tone.success;
+            title: "Saved";
+            text: "Report.pdf was saved. This toast closes by itself.";
+            close-label: "Dismiss";
+            close-requested => { root.toasts[0] = false; }
+        }
+        if root.toasts[1]: Toast {
+            title: "Tip";
+            text: "Keep the pointer over a toast to hold it open.";
+            close-label: "Dismiss";
+            close-requested => { root.toasts[1] = false; }
+        }
+        if root.toasts[2]: Toast {
+            tone: Tone.danger;
+            title: "Upload failed";
+            text: "The server didn't answer. A persistent toast stays until you close it.";
+            persistent: true;
+            close-label: "Dismiss";
+            close-requested => { root.toasts[2] = false; }
         }
     }
 }

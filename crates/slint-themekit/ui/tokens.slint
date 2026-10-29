@@ -90,6 +90,9 @@ export struct Elevation {
 export struct Motion {
     fast: duration,
     normal: duration,
+    // How long a `Toast` stays before it closes by itself. Zero keeps every
+    // toast until the user closes it.
+    toast: duration,
 }
 
 export struct ThemeData {
@@ -110,3 +113,7 @@ export enum Tone { neutral, muted, primary, success, warning, danger }
 
 // Typographic role of a text element.
 export enum TextRole { caption, body, heading, title, display }
+
+// Size of a button or an input field. Controls of the same size are equally
+// tall, so they line up in a row. `medium` comes first, so it is the default.
+export enum ControlSize { medium, small, large }

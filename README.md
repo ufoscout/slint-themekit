@@ -12,18 +12,30 @@ The rules every component follows are in
 ## Components
 
 `Label`, `Button` (primary / secondary / ghost / danger, optional icon),
-`Checkbox`, `Slider`, `NumberField` (drag sideways or type), `TextField`,
-`Select` (a dropdown), `Chip`, `Badge`, `Card`, `ProgressBar`, `Spinner`,
-`NavItem`, `Dialog` (modal, over a scrim), `Tab` (optionally closable) in a
-`TabBar` (wraps when the tabs don't fit), `ListView` (only the rows in view
-exist, for long lists; scrolls sideways for wide rows) of `ListItem`s or of
-`TreeItem`s (a tree, flattened), `Menu` (a popup) of `MenuItem`s, `Divider`
-and `VerticalDivider`, `Splitter` (a handle that resizes the panes beside
-it), `ResizeGrip` (a corner handle that resizes what it sits in), `Shadow` (a
+`Checkbox`, `Radio`, `Switch`, `Slider`, `NumberField` (drag sideways or
+type), `TextField` (cuts off a text too long to fit, and tells you so for a
+tooltip), `Select` (a dropdown), `Chip`, `Badge`, `Card`, `ProgressBar`,
+`Spinner`, `NavItem`, `Alert` (a message in a tone, optionally closable),
+`Toast`s in a `ToastStack` (notices floating over the UI, closing by
+themselves), `Dialog` (modal, over a scrim), `Popover` (a floating panel for
+any content), `Tab` (optionally closable) in a `TabBar` (wraps when the tabs
+don't fit), `AccordionItem` (a collapsible section; stack them for an
+accordion), `Table` (rows of `TableCell`s under a header, in
+`TableColumn`s: texts, numbers to edit, images and buttons; only the rows in
+view exist), `ListView` (only the rows in view exist, for
+long lists; scrolls sideways for wide rows) of `ListItem`s or of `TreeItem`s
+(a tree, flattened), `Menu` (a popup) of `MenuItem`s, `Divider` and
+`VerticalDivider`, `Splitter` (a handle that resizes the panes beside it),
+`ResizeGrip` (a corner handle that resizes what it sits in), `Shadow` (a
 floating panel's shadow, drawn on every renderer), `TooltipText` (the bubble
 of Slint's built-in `Tooltip`), `ScrollArea` (scrolls sideways too when its
 content is wider), `StateLayer` (hover/press feedback for your own
 components) and an `Icons` set drawn from [Lucide](https://lucide.dev).
+
+`Button`, `TextField`, `NumberField` and `Select` come in three sizes
+(`size: ControlSize.small`, `medium` or `large`). Controls of one size are
+equally tall, so a row of them lines up, and every theme gets the three
+sizes from its own tokens.
 
 Interactive controls are *controlled*: a `Checkbox` never flips its own
 `checked`, it reports `toggled()`. The state owner decides, which keeps the UI
@@ -83,8 +95,12 @@ are two shadows: `shadow` with `elevation.blur` / `offset` for surfaces lying
 on the UI (cards), and the stronger `overlay-shadow` with
 `elevation.overlay-blur` / `overlay-offset` for panels floating over it
 (dialogs, and your own panels through `Shadow`); zero blur means no
-shadow. Two
-presets ship in `ThemePresets` (`light`, `dark`). To add your
+shadow. `motion.toast` is how long a `Toast` stays before it closes by
+itself (zero keeps it until the user closes it). Four
+presets ship in `ThemePresets`: `light`, `dark`, `sunset` (warm, serif,
+roomy, rounded, slow motion) and `terminal` (green on black, monospace,
+dense, square, flat, no motion). Sunset and Terminal name DejaVu fonts;
+where those aren't installed, they fall back to the system font. To add your
 own, declare a `ThemeData` value in a global of your app and assign it to
 `Theme.current`, from Slint or from Rust
 (`window.global::<Theme>().set_current(..)`).
@@ -106,7 +122,7 @@ fn ui_uses_tokens_only() -> std::io::Result<()> {
 
 ## Gallery
 
-`crates/themekit-gallery` shows every component in both presets. It uses this
+`crates/themekit-gallery` shows every component in every preset. It uses this
 library exactly like an app does, and its tests fail if an exported component
 is missing from it:
 

@@ -1,7 +1,6 @@
 import { Theme } from "theme.slint";
-import { Icons } from "icons.slint";
 import { StateLayer } from "state-layer.slint";
-import { TooltipText } from "tooltip-text.slint";
+import { CloseButton } from "close-button.slint";
 
 // One tab of a `TabBar`. Controlled: `selected` is an input, `clicked()` asks
 // to select the tab. A `closable` tab also shows a × that asks to close it
@@ -58,33 +57,10 @@ export component Tab inherits Rectangle {
 
         if root.closable: VerticalLayout {
             alignment: center;
-            Rectangle {
-                width: Theme.sizes.icon + Theme.spacing.xs * 2;
-                height: self.width;
-                border-radius: min(Theme.radii.full, self.height / 2);
-                accessible-role: button;
-                accessible-label: root.close-label;
-                accessible-action-default => { root.close-requested(); }
-
-                StateLayer {
-                    border-radius: parent.border-radius;
-                    tint: root.ink;
-                    hovered: close-touch.has-hover;
-                    pressed: close-touch.pressed;
-                }
-                Image {
-                    source: Icons.close;
-                    colorize: root.ink;
-                    width: Theme.sizes.icon;
-                    height: Theme.sizes.icon;
-                }
-                close-touch := TouchArea {
-                    mouse-cursor: pointer;
-                    clicked => { root.close-requested(); }
-                }
-                if root.close-label != "": Tooltip {
-                    TooltipText { text: root.close-label; }
-                }
+            CloseButton {
+                label: root.close-label;
+                ink: root.ink;
+                clicked => { root.close-requested(); }
             }
         }
     }

@@ -76,6 +76,13 @@ the control, like a `TextField`'s draft text.
   opacity.
 - **Motion:** state changes animate with `motion.fast`, value changes (like
   progress) with `motion.normal`.
+- **Sizes:** buttons and input fields take a `size` (`ControlSize`: small,
+  medium, large) and read their height, font size and padding from
+  `Theme.control-height()`, `Theme.control-font-size()`,
+  `Theme.field-padding()` and `Theme.button-padding()`, never from
+  `sizes.control-height` directly. Controls of one size are equally tall, so
+  a row of them lines up. The three sizes are derived from the theme's
+  tokens: density stays the theme's job.
 
 `StateLayer` is public, so apps can build their own interactive surfaces that
 behave the same way.

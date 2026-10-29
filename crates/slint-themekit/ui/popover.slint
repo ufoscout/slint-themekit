@@ -1,0 +1,31 @@
+import { Theme } from "theme.slint";
+
+// A panel that floats next to the control that opens it, for content that
+// doesn't belong in the layout: a few settings, details, a short form. Put
+// its content inside, place it with `x` / `y` (relative to the component
+// it's declared in) and open it with `show()`. Unlike a `Menu`, clicks
+// inside it stay inside: a click outside or Escape closes it, and `close()`
+// closes it from its content.
+export component Popover inherits PopupWindow {
+    in property <length> content-padding: Theme.spacing.md;
+    in property <length> content-spacing: Theme.spacing.sm;
+
+    close-policy: PopupClosePolicy.close-on-click-outside;
+
+    Rectangle {
+        background: Theme.palette.surface;
+        border-radius: Theme.radii.md;
+        border-width: Theme.sizes.border-width;
+        border-color: Theme.palette.border;
+        drop-shadow-blur: Theme.elevation.blur;
+        drop-shadow-offset-y: Theme.elevation.offset;
+        drop-shadow-color: Theme.palette.shadow;
+        accessible-role: groupbox;
+
+        VerticalLayout {
+            padding: root.content-padding;
+            spacing: root.content-spacing;
+            @children
+        }
+    }
+}

@@ -1,0 +1,18 @@
+import { Theme } from "theme.slint";
+
+// Where `Toast`s appear: lay it over the area they float above, sized like
+// that area (like a `Dialog`), and put the toasts inside. They stack in its
+// bottom-right corner, in the order given, `toast-width` wide; the rest of
+// the area lets clicks through to the UI underneath.
+export component ToastStack inherits Rectangle {
+    in property <length> toast-width: Theme.sizes.control-height * 10;
+
+    VerticalLayout {
+        width: min(root.toast-width, root.width - Theme.spacing.lg * 2);
+        height: self.preferred-height;
+        x: root.width - self.width - Theme.spacing.lg;
+        y: root.height - self.height - Theme.spacing.lg;
+        spacing: Theme.spacing.sm;
+        @children
+    }
+}

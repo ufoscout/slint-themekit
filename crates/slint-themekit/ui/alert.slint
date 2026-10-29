@@ -1,0 +1,92 @@
+import { Theme } from "theme.slint";
+import { Icons } from "icons.slint";
+import { Tone } from "tokens.slint";
+import { Label } from "label.slint";
+import { CloseButton } from "close-button.slint";
+
+// A message about the content around it: a box tinted in the `tone`, with
+// the tone's icon, an optional `title` and the `text`. Screen readers
+// announce it when it appears. A `closable` alert also shows a × that
+// reports `close-requested()`; the app decides whether it goes, and
+// `close-label` names the × for screen readers and in its tooltip.
+export component Alert inherits Rectangle {
+    in property <Tone> tone: Tone.primary;
+    in property <string> title;
+    in property <string> text;
+    in property <bool> closable;
+    in property <string> close-label;
+    callback close-requested();
+
+    property <color> ink: Theme.tone-color(root.tone == Tone.neutral ? Tone.muted : root.tone);
+    // The icon and the × are centred on the first line of text.
+    property <length> line-height: line.preferred-height;
+
+    border-radius: Theme.radii.md;
+    background: root.ink.with-alpha(Theme.states.tint);
+    accessible-role: groupbox;
+    accessible-label: root.title != "" ? root.title : root.text;
+    accessible-description: root.title != "" ? root.text : "";
+    accessible-live-region: AccessibleLiveness.polite;
+
+    // Measures one line of body text; never shown.
+    line := Text {
+        text: " ";
+        visible: false;
+        accessible-role: none;
+        font-family: Theme.typography.family;
+        font-size: Theme.typography.body-size;
+    }
+
+    HorizontalLayout {
+        padding: Theme.spacing.md;
+        spacing: Theme.spacing.sm;
+
+        VerticalLayout {
+            alignment: start;
+            Rectangle {
+                height: root.line-height;
+                Image {
+                    source: root.tone == Tone.success ? Icons.success
+                        : root.tone == Tone.warning ? Icons.warning
+                        : root.tone == Tone.danger ? Icons.danger
+                        : Icons.info;
+                    colorize: root.ink;
+                    width: Theme.sizes.icon;
+                    height: Theme.sizes.icon;
+                    accessible-role: none;
+                }
+            }
+        }
+
+        VerticalLayout {
+            horizontal-stretch: 1;
+            spacing: Theme.spacing.xs;
+
+            if root.title != "": Text {
+                text: root.title;
+                accessible-role: none;
+                color: Theme.palette.text;
+                font-family: Theme.typography.family;
+                font-size: Theme.typography.body-size;
+                font-weight: Theme.typography.strong-weight;
+                wrap: word-wrap;
+            }
+            if root.text != "": Label {
+                text: root.text;
+                accessible-role: none;
+                wrap: word-wrap;
+            }
+        }
+
+        if root.closable: VerticalLayout {
+            alignment: start;
+            Rectangle {
+                height: root.line-height;
+                CloseButton {
+                    label: root.close-label;
+                    clicked => { root.close-requested(); }
+                }
+            }
+        }
+    }
+}

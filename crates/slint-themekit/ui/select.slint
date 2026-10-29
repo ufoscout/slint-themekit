@@ -1,4 +1,5 @@
 import { Theme } from "theme.slint";
+import { ControlSize } from "tokens.slint";
 import { Icons } from "icons.slint";
 import { StateLayer } from "state-layer.slint";
 import { Menu } from "menu.slint";
@@ -6,17 +7,18 @@ import { MenuItem } from "menu-item.slint";
 
 // A dropdown that picks one of `options`. Controlled: `current-index` is an
 // input (-1 shows the `placeholder`), and picking an option reports
-// `selected(index)`.
+// `selected(index)`. It comes in three sizes, like `Button`.
 export component Select inherits Rectangle {
     in property <[string]> options;
     in property <int> current-index: -1;
     in property <string> placeholder;
     in property <bool> enabled: true;
+    in property <ControlSize> size: ControlSize.medium;
     callback selected(index: int);
 
     property <bool> has-value: root.current-index >= 0 && root.current-index < root.options.length;
 
-    min-height: Theme.sizes.control-height;
+    min-height: Theme.control-height(root.size);
     horizontal-stretch: 1;
     border-radius: Theme.radii.md;
     background: Theme.palette.surface;
@@ -41,7 +43,7 @@ export component Select inherits Rectangle {
     }
 
     HorizontalLayout {
-        padding-left: Theme.spacing.md;
+        padding-left: Theme.field-padding(root.size);
         padding-right: Theme.spacing.sm;
         spacing: Theme.spacing.sm;
 
@@ -50,7 +52,7 @@ export component Select inherits Rectangle {
             accessible-role: none;
             color: root.has-value ? Theme.palette.text : Theme.palette.text-muted;
             font-family: Theme.typography.family;
-            font-size: Theme.typography.body-size;
+            font-size: Theme.control-font-size(root.size);
             vertical-alignment: center;
             horizontal-stretch: 1;
             overflow: elide;

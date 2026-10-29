@@ -1,14 +1,17 @@
 import { Theme } from "theme.slint";
+import { ControlSize } from "tokens.slint";
 import { StateLayer } from "state-layer.slint";
 
 export enum ButtonKind { primary, secondary, ghost, danger }
 
-// Push button with optional icon. Leave `text` empty for an icon-only button
-// (and set `accessible-label` so screen readers can announce it).
+// Push button with optional icon, in three sizes. Leave `text` empty for an
+// icon-only button (and set `accessible-label` so screen readers can announce
+// it): it is square.
 export component Button inherits Rectangle {
     in property <string> text;
     in property <image> icon;
     in property <ButtonKind> kind: ButtonKind.primary;
+    in property <ControlSize> size: ControlSize.medium;
     in property <bool> enabled: true;
     callback clicked();
 
@@ -21,8 +24,8 @@ export component Button inherits Rectangle {
         : root.kind == ButtonKind.danger ? Theme.palette.on-danger
         : Theme.palette.text;
 
-    min-height: Theme.sizes.control-height;
-    min-width: root.icon-only ? Theme.sizes.control-height : 0px;
+    min-height: Theme.control-height(root.size);
+    min-width: root.icon-only ? Theme.control-height(root.size) : 0px;
     horizontal-stretch: 0;
     border-radius: Theme.radii.md;
     background: root.fill;
@@ -47,7 +50,8 @@ export component Button inherits Rectangle {
     }
 
     HorizontalLayout {
-        padding-left: root.icon-only ? Theme.spacing.sm : Theme.spacing.lg;
+        // Icon-only, the minimum width makes it square.
+        padding-left: root.icon-only ? Theme.spacing.xs : Theme.button-padding(root.size);
         padding-right: self.padding-left;
         spacing: Theme.spacing.sm;
         alignment: center;
@@ -66,7 +70,7 @@ export component Button inherits Rectangle {
             accessible-role: none;
             color: root.ink;
             font-family: Theme.typography.family;
-            font-size: Theme.typography.body-size;
+            font-size: Theme.control-font-size(root.size);
             font-weight: Theme.typography.strong-weight;
             vertical-alignment: center;
         }

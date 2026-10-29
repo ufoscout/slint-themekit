@@ -22,7 +22,7 @@ crates/slint-themekit/     the library crate
   ui/lib.slint             public entry point: only what it re-exports is public
   ui/tokens.slint          ThemeData and its parts, Tone, TextRole
   ui/theme.slint           the Theme global components read from
-  ui/presets.slint         Light and Dark: the only file with literal values
+  ui/presets.slint         Light, Dark, Sunset, Terminal: the only file with literal values
   ui/<component>.slint     one component per file
   ui/icons.slint           the Icons global: one property per icon
   ui/icons/                Lucide SVGs, unmodified, and Lucide's LICENSE
@@ -40,7 +40,7 @@ crates/themekit-gallery/   the gallery crate
 cargo test --workspace                       # lints, gallery coverage, unit tests; builds the gallery
 cargo clippy --workspace --all-targets
 cargo fmt --all -- --check
-cargo run -p themekit-gallery                # look at the result, in Light and Dark
+cargo run -p themekit-gallery                # look at the result, in every preset
 cargo package -p slint-themekit --allow-dirty --list   # before a release: ui/ must be listed
 just check_code                              # fmt, clippy and Slint warnings, as CI runs them
 just icons                                   # downloads the icons icons.slint references
@@ -54,8 +54,8 @@ warnings; `just slint_check` (part of `just check_code`) builds with
 
 1. Put a new component in `crates/slint-themekit/ui/<name>.slint`. Import `Theme` from
    `theme.slint` and read every visual value from it.
-2. If no token fits, add one to `tokens.slint` and give it a value in both
-   presets in `presets.slint`. Zero must be a safe value (principle 3), and
+2. If no token fits, add one to `tokens.slint` and give it a value in every
+   preset in `presets.slint`. Zero must be a safe value (principle 3), and
    the new token goes into the README's "Theming" section.
 3. Keep it controlled: state comes in through `in` properties, intents go out
    through callbacks. The component never assigns its own state.
@@ -72,7 +72,7 @@ warnings; `just slint_check` (part of `just check_code`) builds with
      the change can be seen and tried.
    - Demo state (checked, selected, values) lives in the gallery and changes
      only in callbacks, like in an app.
-   - Run the gallery and check the change in both Light and Dark.
+   - Run the gallery and check the change in every preset.
 
    `tests/gallery.rs` only checks that every exported component appears in
    the gallery; showing new variants and states is up to you. If that test

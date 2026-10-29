@@ -1,0 +1,71 @@
+import { Theme } from "theme.slint";
+import { Label } from "label.slint";
+import { StateLayer } from "state-layer.slint";
+
+// One choice of a set where exactly one is checked. Controlled: `checked` is
+// an input and clicking reports `clicked()`; the app checks this one and
+// unchecks the others, usually by keeping the index of the checked one.
+export component Radio inherits Rectangle {
+    in property <bool> checked;
+    in property <string> text;
+    in property <bool> enabled: true;
+    callback clicked();
+
+    horizontal-stretch: 0;
+    vertical-stretch: 0;
+    opacity: root.enabled ? 1 : Theme.states.disabled;
+    accessible-role: radio-button;
+    accessible-checkable: true;
+    accessible-checked: root.checked;
+    accessible-label: root.text;
+    accessible-enabled: root.enabled;
+    accessible-action-default => {
+        if root.enabled {
+            root.clicked();
+        }
+    }
+
+    HorizontalLayout {
+        spacing: Theme.spacing.sm;
+        alignment: start;
+
+        VerticalLayout {
+            alignment: center;
+            Rectangle {
+                width: Theme.sizes.indicator;
+                height: Theme.sizes.indicator;
+                border-radius: min(Theme.radii.full, self.height / 2);
+                background: Theme.palette.surface;
+                border-width: Theme.sizes.border-width;
+                border-color: root.checked ? Theme.palette.primary : Theme.palette.border;
+                animate border-color { duration: Theme.motion.fast; }
+
+                StateLayer {
+                    border-radius: parent.border-radius;
+                    hovered: touch.has-hover;
+                    pressed: touch.pressed;
+                }
+
+                // The dot grows in when checked.
+                Rectangle {
+                    width: root.checked ? parent.width / 2 : 0px;
+                    height: self.width;
+                    border-radius: min(Theme.radii.full, self.height / 2);
+                    background: Theme.palette.primary;
+                    animate width { duration: Theme.motion.fast; }
+                }
+            }
+        }
+
+        if root.text != "": Label {
+            text: root.text;
+            accessible-role: none;
+        }
+    }
+
+    touch := TouchArea {
+        enabled: root.enabled;
+        mouse-cursor: pointer;
+        clicked => { root.clicked(); }
+    }
+}

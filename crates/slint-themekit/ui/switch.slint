@@ -1,0 +1,73 @@
+import { Theme } from "theme.slint";
+import { Label } from "label.slint";
+import { StateLayer } from "state-layer.slint";
+
+// An on/off switch, for a setting that applies at once. Controlled like
+// `Checkbox`: `checked` is an input, and clicking reports `toggled()`.
+export component Switch inherits Rectangle {
+    in property <bool> checked;
+    in property <string> text;
+    in property <bool> enabled: true;
+    callback toggled();
+
+    horizontal-stretch: 0;
+    vertical-stretch: 0;
+    opacity: root.enabled ? 1 : Theme.states.disabled;
+    accessible-role: switch;
+    accessible-checkable: true;
+    accessible-checked: root.checked;
+    accessible-label: root.text;
+    accessible-enabled: root.enabled;
+    accessible-action-default => {
+        if root.enabled {
+            root.toggled();
+        }
+    }
+
+    HorizontalLayout {
+        spacing: Theme.spacing.sm;
+        alignment: start;
+
+        VerticalLayout {
+            alignment: center;
+            Rectangle {
+                width: Theme.sizes.indicator * 2;
+                height: Theme.sizes.indicator;
+                border-radius: min(Theme.radii.full, self.height / 2);
+                background: root.checked ? Theme.palette.primary : Theme.palette.surface-variant;
+                border-width: root.checked ? 0px : Theme.sizes.border-width;
+                border-color: Theme.palette.border;
+                animate background { duration: Theme.motion.fast; }
+
+                StateLayer {
+                    border-radius: parent.border-radius;
+                    hovered: touch.has-hover;
+                    pressed: touch.pressed;
+                }
+
+                // The thumb, at the start when off and at the end when on.
+                Rectangle {
+                    property <length> inset: Theme.spacing.xs / 2;
+
+                    width: parent.height - self.inset * 2;
+                    height: self.width;
+                    x: root.checked ? parent.width - self.width - self.inset : self.inset;
+                    border-radius: min(Theme.radii.full, self.height / 2);
+                    background: root.checked ? Theme.palette.on-primary : Theme.palette.text-muted;
+                    animate x, background { duration: Theme.motion.fast; }
+                }
+            }
+        }
+
+        if root.text != "": Label {
+            text: root.text;
+            accessible-role: none;
+        }
+    }
+
+    touch := TouchArea {
+        enabled: root.enabled;
+        mouse-cursor: pointer;
+        clicked => { root.toggled(); }
+    }
+}

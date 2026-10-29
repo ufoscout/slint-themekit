@@ -1,0 +1,58 @@
+import { Theme } from "theme.slint";
+import { Tone } from "tokens.slint";
+import { Alert } from "alert.slint";
+import { Shadow } from "shadow.slint";
+
+// A short notice that floats over the UI: an `Alert` on a floating panel.
+// Put it in a `ToastStack`, with an `if` on the app's state. Controlled: it
+// never removes itself, it reports `close-requested()` when the user clicks
+// its × or, unless `persistent`, after `Theme.motion.toast` (a pointer over
+// it holds it open). `close-label` names the × for screen readers.
+export component Toast inherits Rectangle {
+    in property <Tone> tone: Tone.primary;
+    in property <string> title;
+    in property <string> text;
+    in property <bool> persistent;
+    in property <string> close-label;
+    callback close-requested();
+
+    // Fades in once created.
+    property <bool> shown;
+
+    opacity: root.shown ? 1 : 0;
+    animate opacity { duration: Theme.motion.fast; }
+    init => { root.shown = true; }
+
+    Shadow {
+        x: 0;
+        y: 0;
+        width: root.width;
+        height: root.height;
+        radius: panel.border-radius;
+    }
+
+    panel := Rectangle {
+        background: Theme.palette.surface;
+        border-radius: Theme.radii.md;
+        border-width: Theme.sizes.border-width;
+        border-color: Theme.palette.border;
+
+        // Behind the content, so the × keeps its own input.
+        hover := TouchArea { }
+
+        Alert {
+            tone: root.tone;
+            title: root.title;
+            text: root.text;
+            closable: true;
+            close-label: root.close-label;
+            close-requested => { root.close-requested(); }
+        }
+    }
+
+    Timer {
+        interval: Theme.motion.toast;
+        running: !root.persistent && Theme.motion.toast > 0ms && !hover.has-hover;
+        triggered => { root.close-requested(); }
+    }
+}

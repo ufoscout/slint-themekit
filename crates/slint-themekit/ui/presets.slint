@@ -1,10 +1,10 @@
-// The two built-in themes. This file (and any app-level theme file) is the
+// The built-in themes. This file (and any app-level theme file) is the
 // only place where concrete colors and sizes are allowed to appear.
 
 import { ThemeData, Typography, Spacing, Radii, Sizes, StateOpacity, Motion } from "tokens.slint";
 
 export global ThemePresets {
-    // Shape, rhythm and motion shared by both presets.
+    // Shape, rhythm and motion shared by Light and Dark.
     property <Typography> typography: {
         family: "",
         caption-size: 12px,
@@ -26,7 +26,7 @@ export global ThemePresets {
         progress-height: 8px,
         scrollbar-width: 6px
     };
-    property <Motion> motion: { fast: 120ms, normal: 240ms };
+    property <Motion> motion: { fast: 120ms, normal: 240ms, toast: 5s };
 
     out property <ThemeData> light: {
         name: "Light",
@@ -92,5 +92,109 @@ export global ThemePresets {
         states: { hover: 0.08, pressed: 0.14, disabled: 0.4, tint: 0.2 },
         elevation: { blur: 0px, offset: 0px, overlay-blur: 12px, overlay-offset: 3px },
         motion: motion
+    };
+
+    // Warm and roomy: a serif font, larger sizes, soft rounded shapes, deep
+    // shadows and slow motion.
+    out property <ThemeData> sunset: {
+        name: "Sunset",
+        dark: false,
+        palette: {
+            background: #fbf4ec,
+            surface: #fffaf5,
+            surface-variant: #f4e6d8,
+            border: #ead6c3,
+            text: #3b2a20,
+            text-muted: #8a6f5c,
+            primary: #d9480f,
+            on-primary: #ffffff,
+            primary-container: #ffe0cc,
+            on-primary-container: #7a2600,
+            success: #2f855a,
+            warning: #c05621,
+            danger: #c53030,
+            on-danger: #ffffff,
+            state-layer: #3b2a20,
+            focus-ring: #f08c4a,
+            shadow: #7a3b1426,
+            overlay-shadow: #7a3b1440,
+            scrim: #3b2a2066
+        },
+        typography: {
+            family: "DejaVu Serif",
+            caption-size: 12px,
+            body-size: 15px,
+            heading-size: 18px,
+            title-size: 24px,
+            display-size: 38px,
+            regular-weight: 400,
+            strong-weight: 700
+        },
+        spacing: { xs: 6px, sm: 10px, md: 14px, lg: 20px, xl: 28px },
+        radii: { sm: 8px, md: 14px, lg: 20px, full: 999px },
+        sizes: {
+            control-height: 40px,
+            icon: 18px,
+            indicator: 20px,
+            border-width: 1px,
+            focus-width: 2px,
+            progress-height: 12px,
+            scrollbar-width: 8px
+        },
+        states: { hover: 0.07, pressed: 0.14, disabled: 0.45, tint: 0.16 },
+        elevation: { blur: 18px, offset: 4px, overlay-blur: 24px, overlay-offset: 6px },
+        motion: { fast: 180ms, normal: 420ms, toast: 6s }
+    };
+
+    // Green on black and dense: a monospace font, square corners, no
+    // shadows and no animation.
+    out property <ThemeData> terminal: {
+        name: "Terminal",
+        dark: true,
+        palette: {
+            background: #0b0f0b,
+            surface: #0f160f,
+            surface-variant: #142014,
+            border: #2e5c2e,
+            text: #b6f5b6,
+            text-muted: #5f9a5f,
+            primary: #39ff14,
+            on-primary: #041004,
+            primary-container: #173d17,
+            on-primary-container: #8cff7a,
+            success: #39ff14,
+            warning: #ffd60a,
+            danger: #ff4d4d,
+            on-danger: #120404,
+            state-layer: #39ff14,
+            focus-ring: #39ff14,
+            shadow: #00000000,
+            overlay-shadow: #00000000,
+            scrim: #000000b3
+        },
+        typography: {
+            family: "DejaVu Sans Mono",
+            caption-size: 11px,
+            body-size: 13px,
+            heading-size: 15px,
+            title-size: 19px,
+            display-size: 28px,
+            regular-weight: 400,
+            strong-weight: 700
+        },
+        spacing: { xs: 3px, sm: 6px, md: 10px, lg: 14px, xl: 20px },
+        radii: { sm: 0px, md: 0px, lg: 0px, full: 0px },
+        sizes: {
+            control-height: 30px,
+            icon: 14px,
+            indicator: 14px,
+            border-width: 1px,
+            focus-width: 1px,
+            progress-height: 6px,
+            scrollbar-width: 4px
+        },
+        states: { hover: 0.1, pressed: 0.2, disabled: 0.35, tint: 0.18 },
+        elevation: { blur: 0px, offset: 0px, overlay-blur: 0px, overlay-offset: 0px },
+        motion: { fast: 0ms, normal: 0ms, toast: 4s }
     };
 }

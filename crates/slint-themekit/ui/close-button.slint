@@ -1,0 +1,40 @@
+import { Theme } from "theme.slint";
+import { Icons } from "icons.slint";
+import { StateLayer } from "state-layer.slint";
+import { TooltipText } from "tooltip-text.slint";
+
+// The × of a closable tab, alert or toast: an icon button small enough to
+// sit on a line of text. `label` names it for screen readers and in its
+// tooltip; `ink` is the color of what it closes.
+export component CloseButton inherits Rectangle {
+    in property <string> label;
+    in property <color> ink: Theme.palette.text;
+    callback clicked();
+
+    width: Theme.sizes.icon + Theme.spacing.xs * 2;
+    height: self.width;
+    border-radius: min(Theme.radii.full, self.height / 2);
+    accessible-role: button;
+    accessible-label: root.label;
+    accessible-action-default => { root.clicked(); }
+
+    StateLayer {
+        border-radius: root.border-radius;
+        tint: root.ink;
+        hovered: touch.has-hover;
+        pressed: touch.pressed;
+    }
+    Image {
+        source: Icons.close;
+        colorize: root.ink;
+        width: Theme.sizes.icon;
+        height: Theme.sizes.icon;
+    }
+    touch := TouchArea {
+        mouse-cursor: pointer;
+        clicked => { root.clicked(); }
+    }
+    if root.label != "": Tooltip {
+        TooltipText { text: root.label; }
+    }
+}

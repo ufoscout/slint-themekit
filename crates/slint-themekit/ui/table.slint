@@ -1,0 +1,280 @@
+import { Theme } from "theme.slint";
+import { ControlSize } from "tokens.slint";
+import { Label } from "label.slint";
+import { Divider } from "divider.slint";
+import { ListView } from "list-view.slint";
+import { ListItem } from "list-item.slint";
+import { NumberField } from "number-field.slint";
+import { Button, ButtonKind } from "button.slint";
+import { TooltipText } from "tooltip-text.slint";
+
+// A column of a `Table`.
+export struct TableColumn {
+    title: string,
+    // The column's width. 0 shares the room the columns with a width leave;
+    // when every column has one, they all grow to fill the row.
+    width: length,
+    alignment: TextHorizontalAlignment,
+    // Its texts wrap onto more lines, and their rows grow to fit, instead of
+    // being cut off.
+    wrap: bool,
+}
+
+// What a `Table` cell shows. `text` comes first, so it is the default.
+export enum TableCellKind { text, number, image, button }
+
+// A cell of a `Table`. Which fields count depends on its `kind`:
+//
+// - `text`: the `text`.
+// - `number`: the `value`, which the user drags sideways or types like in a
+//   `NumberField`: kept from `minimum` to `maximum` and snapped to `step`
+//   (0 for any value).
+// - `image`: the `image`, as wide as its column and as tall (an icon's size
+//   in a column without a width). It is drawn as it is, or in `colorize`
+//   when that isn't transparent (a monochrome icon, like `Icons`). `text`
+//   names it for screen readers.
+// - `button`: a ghost `Button` with the `image` as its icon and the `text`
+//   as its label. With an icon, the text names the button for screen readers
+//   and in its tooltip instead.
+export struct TableCell {
+    kind: TableCellKind,
+    text: string,
+    image: image,
+    colorize: color,
+    value: float,
+    minimum: float,
+    maximum: float,
+    step: float,
+}
+
+// One cell's content, in a row or in the copy that measures a row.
+component CellView inherits HorizontalLayout {
+    in property <TableCell> cell;
+    in property <TableColumn> column;
+    in property <ControlSize> size;
+    callback number-changed(value: float);
+    callback button-clicked();
+
+    property <bool> has-icon: root.cell.image.width > 0;
+    property <length> image-size: root.column.width > 0 ? root.column.width : Theme.sizes.icon;
+    // Images and buttons don't fill their column: they sit at its alignment.
+    property <bool> placed: root.cell.kind == TableCellKind.image || root.cell.kind == TableCellKind.button;
+    property <bool> at-start: root.column.alignment == TextHorizontalAlignment.left;
+    property <bool> at-end: root.column.alignment == TextHorizontalAlignment.right;
+
+    if root.cell.kind == TableCellKind.text: text-label := Label {
+        text: root.cell.text;
+        horizontal-alignment: root.column.alignment;
+        vertical-alignment: root.column.wrap ? TextVerticalAlignment.top : TextVerticalAlignment.center;
+        wrap: root.column.wrap ? TextWrap.word-wrap : TextWrap.no-wrap;
+        overflow: root.column.wrap ? TextOverflow.clip : TextOverflow.elide;
+
+        if !root.column.wrap && text-label.preferred-width > text-label.width: Tooltip {
+            TooltipText { text: root.cell.text; }
+        }
+    }
+
+    // Centred in a row a wrapped text makes taller.
+    if root.cell.kind == TableCellKind.number: VerticalLayout {
+        alignment: center;
+        NumberField {
+            size: root.size;
+            value: root.cell.value;
+            minimum: root.cell.minimum;
+            maximum: root.cell.maximum;
+            step: root.cell.step;
+            changed(value) => { root.number-changed(value); }
+        }
+    }
+
+    if root.placed && !root.at-start: Rectangle { }
+
+    if root.cell.kind == TableCellKind.image: VerticalLayout {
+        alignment: center;
+        Image {
+            source: root.cell.image;
+            colorize: root.cell.colorize;
+            width: root.image-size;
+            height: root.image-size;
+            image-fit: contain;
+            accessible-role: image;
+            accessible-label: root.cell.text;
+        }
+    }
+
+    if root.cell.kind == TableCellKind.button: VerticalLayout {
+        alignment: center;
+        Button {
+            kind: ButtonKind.ghost;
+            size: root.size;
+            icon: root.cell.image;
+            text: root.has-icon ? "" : root.cell.text;
+            accessible-label: root.cell.text;
+            clicked => { root.button-clicked(); }
+
+            if root.has-icon && root.cell.text != "": Tooltip {
+                TooltipText { text: root.cell.text; }
+            }
+        }
+    }
+
+    if root.placed && !root.at-end: Rectangle { }
+}
+
+// Rows of cells under a header, in `columns`: texts, numbers to edit,
+// images and buttons (see `TableCell`), the numbers and buttons in one of
+// the three sizes, like `Button`. Only the rows in view exist, as in a
+// `ListView`; when the columns don't fit, the table scrolls sideways and the
+// header follows. A text cut off by its column shows whole in a tooltip.
+// Controlled: `selected-row` is an input (-1 for none), and the table
+// reports what the user does: `row-clicked(row)` and
+// `row-double-clicked(row)`, with `pointer-x` / `pointer-y` locating the
+// click in the table (to open a `Menu` there); `number-changed(row, column,
+// value)` for every change of a number; `button-clicked(row, column)`.
+export component Table inherits Rectangle {
+    in property <[TableColumn]> columns;
+    in property <[[TableCell]]> rows;
+    in property <int> selected-row: -1;
+    // The size of the number fields and buttons in the cells.
+    in property <ControlSize> size: ControlSize.medium;
+    out property <length> pointer-x;
+    out property <length> pointer-y;
+    callback row-clicked(row: int);
+    callback row-double-clicked(row: int);
+    callback number-changed(row: int, column: int, value: float);
+    callback button-clicked(row: int, column: int);
+
+    // Scrolls the rows so `row` is in view, centred when it was out of view.
+    // Exact when the rows are as tall as the first one.
+    public function scroll-to-row(row: int) {
+        if row < 0 || row >= root.rows.length {
+            return;
+        }
+        if row * root.row-height < -list.content-y || (row + 1) * root.row-height > -list.content-y + list.visible-height {
+            list.content-y = max(min(0px, list.visible-height - root.rows.length * root.row-height), min(0px, list.visible-height / 2 - (row + 0.5) * root.row-height));
+        }
+    }
+
+    // The header and every row give each cell the same constraints, so the
+    // cells line up in columns.
+    pure function cell-min-width(column: int) -> length {
+        root.columns[column].width > 0 ? root.columns[column].width : Theme.sizes.control-height
+    }
+    pure function cell-stretch(column: int) -> float {
+        root.columns[column].width > 0 ? 0 : 1
+    }
+
+    // Measured on a copy of the first row: the list may not have laid out
+    // rows that just changed.
+    property <length> row-height: row-shape.preferred-height;
+
+    vertical-stretch: 1;
+    horizontal-stretch: 1;
+    clip: true;
+    border-radius: Theme.radii.md;
+    border-width: Theme.sizes.border-width;
+    border-color: Theme.palette.border;
+    accessible-role: table;
+
+    // The first row, never shown, padded like a `ListItem`. Placed, so its
+    // width doesn't become the table's minimum.
+    Rectangle {
+        x: 0;
+        y: 0;
+        visible: false;
+        width: list.content-width;
+        accessible-role: none;
+
+        row-shape := HorizontalLayout {
+            padding-left: Theme.spacing.md;
+            padding-right: Theme.spacing.md;
+            padding-top: Theme.spacing.xs;
+            padding-bottom: Theme.spacing.xs;
+            spacing: Theme.spacing.sm;
+
+            for column[index] in root.columns: CellView {
+                cell: root.rows[0][index];
+                column: column;
+                size: root.size;
+                min-width: root.cell-min-width(index);
+                preferred-width: column.width;
+                horizontal-stretch: root.cell-stretch(index);
+            }
+        }
+    }
+
+    VerticalLayout {
+        padding: Theme.sizes.border-width;
+
+        Rectangle {
+            height: header.preferred-height;
+            background: Theme.palette.surface-variant;
+
+            // As wide as the rows' viewport, which leaves room for the
+            // vertical scroll bar, so the titles are cut off like the cells.
+            Rectangle {
+                x: 0;
+                width: list.visible-width;
+                clip: true;
+
+                // Padded like a `ListItem`, so the titles sit over the cells.
+                header := HorizontalLayout {
+                    x: list.content-x;
+                    width: list.content-width;
+                    padding-left: Theme.spacing.md;
+                    padding-right: Theme.spacing.md;
+                    padding-top: Theme.spacing.sm;
+                    padding-bottom: Theme.spacing.sm;
+                    spacing: Theme.spacing.sm;
+
+                    for column[index] in root.columns: Text {
+                        text: column.title;
+                        min-width: root.cell-min-width(index);
+                        preferred-width: column.width;
+                        horizontal-stretch: root.cell-stretch(index);
+                        horizontal-alignment: column.alignment;
+                        overflow: elide;
+                        color: Theme.palette.text-muted;
+                        font-family: Theme.typography.family;
+                        font-size: Theme.typography.body-size;
+                        font-weight: Theme.typography.strong-weight;
+                        vertical-alignment: center;
+                    }
+                }
+            }
+        }
+
+        Divider { }
+
+        list := ListView {
+            content-width: max(self.visible-width, header.min-width);
+
+            for row[row-index] in root.rows: ListItem {
+                width: list.content-width;
+                index: row-index;
+                selected: root.selected-row == row-index;
+                clicked => {
+                    root.pointer-x = self.absolute-position.x - root.absolute-position.x + self.pointer-x;
+                    root.pointer-y = self.absolute-position.y - root.absolute-position.y + self.pointer-y;
+                    root.row-clicked(row-index);
+                }
+                double-clicked => {
+                    root.pointer-x = self.absolute-position.x - root.absolute-position.x + self.pointer-x;
+                    root.pointer-y = self.absolute-position.y - root.absolute-position.y + self.pointer-y;
+                    root.row-double-clicked(row-index);
+                }
+
+                for column[index] in root.columns: CellView {
+                    cell: row[index];
+                    column: column;
+                    size: root.size;
+                    min-width: root.cell-min-width(index);
+                    preferred-width: column.width;
+                    horizontal-stretch: root.cell-stretch(index);
+                    number-changed(value) => { root.number-changed(row-index, index, value); }
+                    button-clicked => { root.button-clicked(row-index, index); }
+                }
+            }
+        }
+    }
+}

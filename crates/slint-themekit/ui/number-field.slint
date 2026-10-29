@@ -1,25 +1,30 @@
 import { Theme } from "theme.slint";
+import { ControlSize } from "tokens.slint";
 import { StateLayer } from "state-layer.slint";
 
 // A number the user drags sideways to change, or clicks to type: a compact
 // numeric input for tables and forms. Controlled: `value` is an input, and
 // every change is reported through `changed(value)` at once — each step of
 // a drag, or the typed number on Enter or focus loss — snapped to a `step`
-// (0 for any value) and clamped from `minimum` to `maximum`.
+// (0 for any value) and clamped from `minimum` to `maximum`. It comes in
+// three sizes, like `Button`.
 export component NumberField inherits Rectangle {
     in property <float> value;
     in property <float> minimum: 0;
     in property <float> maximum: 100;
     in property <float> step: 1;
     in property <bool> enabled: true;
+    in property <ControlSize> size: ControlSize.medium;
     out property <bool> has-focus: input.has-focus;
     callback changed(value: float);
 
     // A drag moves the value one step per this many pixels.
     property <length> step-travel: Theme.sizes.control-height / 8;
 
-    min-height: Theme.sizes.control-height;
-    min-width: Theme.sizes.control-height;
+    min-height: Theme.control-height(root.size);
+    // One line tall, like `TextField`, however tall the row it sits in.
+    max-height: Theme.control-height(root.size);
+    min-width: Theme.control-height(root.size);
     horizontal-stretch: 1;
     clip: true;
     border-radius: Theme.radii.md;
@@ -88,7 +93,7 @@ export component NumberField inherits Rectangle {
             accessible-role: none;
             color: Theme.palette.text;
             font-family: Theme.typography.family;
-            font-size: Theme.typography.body-size;
+            font-size: Theme.control-font-size(root.size);
             selection-background-color: Theme.palette.primary-container;
             selection-foreground-color: Theme.palette.on-primary-container;
             accepted => {

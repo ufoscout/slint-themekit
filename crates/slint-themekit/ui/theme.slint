@@ -1,7 +1,7 @@
 // The single source of truth for look and feel. Assign `Theme.current`
 // (from Slint or from Rust) and every component restyles itself.
 
-import { ThemeData, Palette, Typography, Spacing, Radii, Sizes, StateOpacity, Elevation, Motion, Tone, TextRole } from "tokens.slint";
+import { ThemeData, Palette, Typography, Spacing, Radii, Sizes, StateOpacity, Elevation, Motion, Tone, TextRole, ControlSize } from "tokens.slint";
 import { ThemePresets } from "presets.slint";
 
 export global Theme {
@@ -54,5 +54,51 @@ export global Theme {
 
     public pure function font-weight(role: TextRole) -> int {
         role == TextRole.caption || role == TextRole.body ? typography.regular-weight : typography.strong-weight
+    }
+
+    // The sizes of buttons and input fields, derived from the theme's
+    // medium control: a small one is a spacing step smaller, a large one a
+    // step larger. So every theme has all three, at its own density.
+
+    public pure function control-height(size: ControlSize) -> length {
+        if size == ControlSize.small {
+            return max(0px, sizes.control-height - spacing.sm);
+        }
+        if size == ControlSize.large {
+            return sizes.control-height + spacing.sm;
+        }
+        sizes.control-height
+    }
+
+    public pure function control-font-size(size: ControlSize) -> length {
+        if size == ControlSize.small {
+            return typography.caption-size;
+        }
+        if size == ControlSize.large {
+            return typography.heading-size;
+        }
+        typography.body-size
+    }
+
+    // Between an input field's border and its text.
+    public pure function field-padding(size: ControlSize) -> length {
+        if size == ControlSize.small {
+            return spacing.sm;
+        }
+        if size == ControlSize.large {
+            return spacing.lg;
+        }
+        spacing.md
+    }
+
+    // Between a button's border and its content.
+    public pure function button-padding(size: ControlSize) -> length {
+        if size == ControlSize.small {
+            return spacing.md;
+        }
+        if size == ControlSize.large {
+            return spacing.xl;
+        }
+        spacing.lg
     }
 }
