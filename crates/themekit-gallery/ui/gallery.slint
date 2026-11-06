@@ -142,6 +142,11 @@ export component Gallery inherits Window {
                             selected(index) => { root.planet = index; }
                         }
                     }
+                    Label {
+                        text: "Click a dropdown, then Up and Down change it, open or closed; Enter or Space opens it.";
+                        tone: Tone.muted;
+                        wrap: word-wrap;
+                    }
                     HorizontalLayout {
                         spacing: Theme.spacing.md;
                         Slider {

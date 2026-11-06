@@ -7,7 +7,10 @@ import { MenuItem } from "menu-item.slint";
 
 // A dropdown that picks one of `options`. Controlled: `current-index` is an
 // input (-1 shows the `placeholder`), and picking an option reports
-// `selected(index)`. It comes in three sizes, like `Button`.
+// `selected(index)`. Once it has focus (click it, or Tab to it), Up and Down
+// pick the previous or next option, whether the menu is open or not, and
+// Enter or Space opens or closes the menu. It comes in three sizes, like
+// `Button`.
 export component Select inherits Rectangle {
     in property <[string]> options;
     in property <int> current-index: -1;
@@ -18,13 +21,49 @@ export component Select inherits Rectangle {
 
     property <bool> has-value: root.current-index >= 0 && root.current-index < root.options.length;
 
+    // Report the option `delta` places away, staying within the options;
+    // the first one when none is picked yet.
+    function step(delta: int) {
+        if !root.enabled || root.options.length == 0 {
+            return;
+        }
+        let next = root.has-value ? max(0, min(root.options.length - 1, root.current-index + delta)) : 0;
+        if next != root.current-index {
+            root.selected(next);
+        }
+    }
+
+    // Up and Down step, and Enter or Space opens or closes the menu: from
+    // the dropdown, or from its menu, which has the keyboard while open.
+    function key(event: KeyEvent) -> EventResult {
+        if event.text == Key.UpArrow {
+            root.step(-1);
+            return accept;
+        }
+        if event.text == Key.DownArrow {
+            root.step(1);
+            return accept;
+        }
+        // Every step is picked at once, so closing needs no confirming.
+        if event.text == Key.Return || event.text == " " {
+            if popup.is-open {
+                popup.close();
+            } else {
+                popup.show();
+            }
+            return accept;
+        }
+        reject
+    }
+
     min-height: Theme.control-height(root.size);
     horizontal-stretch: 1;
     border-radius: Theme.radii.md;
     background: Theme.palette.surface;
-    border-width: Theme.sizes.border-width;
-    border-color: Theme.palette.border;
+    border-width: focus.has-focus ? Theme.sizes.focus-width : Theme.sizes.border-width;
+    border-color: focus.has-focus ? Theme.palette.focus-ring : Theme.palette.border;
     opacity: root.enabled ? 1 : Theme.states.disabled;
+    forward-focus: focus;
 
     accessible-role: combobox;
     accessible-value: root.has-value ? root.options[root.current-index] : "";
@@ -68,10 +107,20 @@ export component Select inherits Rectangle {
         }
     }
 
-    touch := TouchArea {
+    focus := FocusScope {
         enabled: root.enabled;
-        mouse-cursor: pointer;
-        clicked => { popup.show(); }
+        key-pressed(event) => {
+            return root.key(event);
+        }
+
+        touch := TouchArea {
+            enabled: root.enabled;
+            mouse-cursor: pointer;
+            clicked => {
+                focus.focus();
+                popup.show();
+            }
+        }
     }
 
     popup := Menu {
@@ -79,6 +128,9 @@ export component Select inherits Rectangle {
         y: root.height;
         width: root.width;
         current-index: root.current-index;
+        key-pressed(event) => {
+            return root.key(event);
+        }
         for option[index] in root.options: MenuItem {
             text: option;
             selected: index == root.current-index;

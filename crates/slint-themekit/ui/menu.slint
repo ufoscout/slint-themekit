@@ -7,11 +7,16 @@ import { MenuPicks } from "menu-item.slint";
 // item, a click outside the menu or Escape closes it. A long menu stops
 // growing at a dozen items and scrolls, and dragging its scroll indicator
 // keeps it open; the window moves it up to fit when it would overflow below.
-// It opens scrolled to its `current-index`, centred.
+// It opens scrolled to its `current-index`, centred, and keeps it in view
+// when it changes.
 export component Menu inherits PopupWindow {
     // The item, counting from 0, that the menu shows centred whenever it
     // opens, like a `Select`'s current option; -1 for none.
     in property <int> current-index: -1;
+    // Keys pressed while the menu is open: it has the keyboard then, not
+    // the control that opened it, which can handle them here (a `Select`
+    // steps through its options). Escape, unless accepted, closes the menu.
+    callback key-pressed(event: KeyEvent) -> EventResult;
 
     // Not on any click, which would include letting go of the scroll
     // indicator: only outside, or when one of its items is picked.
@@ -38,12 +43,35 @@ export component Menu inherits PopupWindow {
                 flick.content-height - flick.height);
         }
     }
+    // Moved while open (from the keyboard, in a `Select`): scroll just
+    // enough to keep the item in view.
+    changed current-index => {
+        if root.current-index >= 0 {
+            let top = root.current-index * root.item-height;
+            if top < -flick.content-y {
+                flick.content-y = -top;
+            } else if top + root.item-height > flick.height - flick.content-y {
+                flick.content-y = flick.height - top - root.item-height;
+            }
+        }
+    }
 
     // The popup's own constraints: the window places it (and keeps it inside
     // the window) by this height, so it must be the height it draws.
     min-height: root.menu-height;
     preferred-height: root.menu-height;
     max-height: root.menu-height;
+    forward-focus: keys;
+
+    // Takes the keyboard when the menu opens; it has no size, so clicks go
+    // to the items.
+    keys := FocusScope {
+        width: 0px;
+        height: 0px;
+        key-pressed(event) => {
+            return root.key-pressed(event);
+        }
+    }
 
     Rectangle {
         // Sized to its items, as wide as the widest; only scrolling takes
