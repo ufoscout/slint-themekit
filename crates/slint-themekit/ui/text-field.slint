@@ -11,11 +11,16 @@ import { ControlSize } from "tokens.slint";
 //         text <=> path;
 //         if path-field.overflowing: Tooltip { TooltipText { text: path; } }
 //     }
+//
+// `horizontal-alignment` places a text that fits (and the placeholder): at
+// the start, or e.g. centred for a number among `NumberField`s, which centre
+// theirs. A text too long to fit starts at the start whatever it is.
 export component TextField inherits Rectangle {
     in-out property <string> text <=> input.text;
     in property <string> placeholder;
     in property <bool> enabled <=> input.enabled;
     in property <ControlSize> size: ControlSize.medium;
+    in property <TextHorizontalAlignment> horizontal-alignment: TextHorizontalAlignment.left;
     out property <bool> has-focus: input.has-focus;
     // The text is wider than the field.
     out property <bool> overflowing: input.preferred-width > viewport.width;
@@ -52,6 +57,8 @@ export component TextField inherits Rectangle {
             height: 100%;
             // Unfocused, the cut-off copy below shows a text that doesn't fit.
             opacity: self.has-focus || !root.overflowing ? 1 : 0;
+            // Within its width, the viewport's while the text fits.
+            horizontal-alignment: root.horizontal-alignment;
             vertical-alignment: center;
             single-line: true;
             accessible-placeholder-text: root.placeholder;
@@ -95,6 +102,7 @@ export component TextField inherits Rectangle {
             text: root.placeholder;
             overflow: elide;
             accessible-role: none;
+            horizontal-alignment: root.horizontal-alignment;
             color: Theme.palette.text-muted;
             font-family: Theme.typography.family;
             font-size: Theme.control-font-size(root.size);

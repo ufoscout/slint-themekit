@@ -116,6 +116,11 @@ export component Gallery inherits Window {
                     HorizontalLayout {
                         spacing: Theme.spacing.sm;
                         TextField { placeholder: "Type something…"; }
+                        // Centred, as for a number among number fields.
+                        TextField {
+                            placeholder: "Centred";
+                            horizontal-alignment: TextHorizontalAlignment.center;
+                        }
                         // Too long for the field: cut off, and whole in a tooltip.
                         long-field := TextField {
                             text <=> root.long-text;
