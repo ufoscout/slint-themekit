@@ -1,10 +1,56 @@
 import { Theme } from "theme.slint";
+import { ScrollIndicator } from "scroll-indicator.slint";
+import { MenuPicks } from "menu-item.slint";
 
 // A popup menu: put `MenuItem`s in it, place it with `x` / `y` (relative to
-// the component it's declared in) and open it with `show()`. Any click, on
-// an item or outside the menu, closes it.
+// the component it's declared in) and open it with `show()`. Picking an
+// item, a click outside the menu or Escape closes it. A long menu stops
+// growing at a dozen items and scrolls, and dragging its scroll indicator
+// keeps it open; the window moves it up to fit when it would overflow below.
+// It opens scrolled to its `current-index`, centred.
 export component Menu inherits PopupWindow {
+    // The item, counting from 0, that the menu shows centred whenever it
+    // opens, like a `Select`'s current option; -1 for none.
+    in property <int> current-index: -1;
+
+    // Not on any click, which would include letting go of the scroll
+    // indicator: only outside, or when one of its items is picked.
+    close-policy: PopupClosePolicy.close-on-click-outside;
+    property <int> picks: MenuPicks.count;
+    changed picks => { root.close(); }
+
+    property <length> inset: Theme.spacing.xs;
+    property <length> max-items-height: Theme.sizes.control-height * 12;
+    property <length> track: Theme.sizes.scrollbar-width + Theme.spacing.xs;
+    property <bool> scrolls: items.preferred-height > root.max-items-height;
+    property <length> menu-height: min(items.preferred-height, root.max-items-height) + root.inset * 2;
+    // In a menu that scrolls, every item keeps a `MenuItem`'s minimum height,
+    // one control: an item's place follows from its index.
+    property <length> item-height: Theme.sizes.control-height;
+
+    // The popup is created anew at every `show()`, so this runs each time
+    // the menu opens.
+    init => {
+        if root.current-index >= 0 {
+            flick.content-y = -clamp(
+                (root.current-index + 0.5) * root.item-height - flick.height / 2,
+                0px,
+                flick.content-height - flick.height);
+        }
+    }
+
+    // The popup's own constraints: the window places it (and keeps it inside
+    // the window) by this height, so it must be the height it draws.
+    min-height: root.menu-height;
+    preferred-height: root.menu-height;
+    max-height: root.menu-height;
+
     Rectangle {
+        // Sized to its items, as wide as the widest; only scrolling takes
+        // room for the indicator.
+        min-width: items.min-width + root.inset * 2 + (root.scrolls ? root.track : 0);
+        preferred-width: items.preferred-width + root.inset * 2 + (root.scrolls ? root.track : 0);
+        height: root.menu-height;
         background: Theme.palette.surface;
         border-radius: Theme.radii.md;
         border-width: Theme.sizes.border-width;
@@ -13,9 +59,28 @@ export component Menu inherits PopupWindow {
         drop-shadow-offset-y: Theme.elevation.offset;
         drop-shadow-color: Theme.palette.shadow;
 
-        VerticalLayout {
-            padding: Theme.spacing.xs;
-            @children
+        flick := Flickable {
+            x: root.inset;
+            y: root.inset;
+            width: parent.width - root.inset * 2 - (root.scrolls ? root.track : 0);
+            height: parent.height - root.inset * 2;
+            // The wheel or the indicator scrolls it: a drag stays a click on
+            // an item. Touch still pans.
+            mouse-drag-pan-enabled: false;
+
+            items := VerticalLayout {
+                @children
+            }
+        }
+
+        if root.scrolls: ScrollIndicator {
+            x: parent.width - root.inset - self.width;
+            y: root.inset;
+            width: Theme.sizes.scrollbar-width;
+            height: flick.height;
+            content-size: flick.content-height;
+            visible-size: flick.height;
+            offset <=> flick.content-y;
         }
     }
 }

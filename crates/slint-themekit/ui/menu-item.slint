@@ -1,27 +1,48 @@
 import { Theme } from "theme.slint";
 import { StateLayer } from "state-layer.slint";
 
+// How many times a `MenuItem` was picked: the open `Menu` closes when it
+// changes. A menu only closes by itself on a click outside it, so that
+// dragging its scroll indicator doesn't close it.
+export global MenuPicks {
+    in-out property <int> count;
+}
+
 // An entry of a `Menu`. Clicking it reports `clicked()`; the menu closes.
+// A `selected` item is highlighted, like the current option of a `Select`.
 export component MenuItem inherits Rectangle {
     in property <string> text;
     in property <bool> enabled: true;
+    in property <bool> selected;
     callback clicked();
+
+    property <color> ink: root.selected ? Theme.palette.on-primary-container : Theme.palette.text;
+
+    // Report the pick, then close the menu.
+    function pick() {
+        root.clicked();
+        MenuPicks.count += 1;
+    }
 
     min-height: Theme.sizes.control-height;
     border-radius: Theme.radii.sm;
+    background: root.selected ? Theme.palette.primary-container : transparent;
     opacity: root.enabled ? 1 : Theme.states.disabled;
 
     accessible-role: button;
     accessible-label: root.text;
     accessible-enabled: root.enabled;
+    accessible-item-selectable: true;
+    accessible-item-selected: root.selected;
     accessible-action-default => {
         if root.enabled {
-            root.clicked();
+            root.pick();
         }
     }
 
     StateLayer {
         border-radius: root.border-radius;
+        tint: root.ink;
         hovered: touch.has-hover;
         pressed: touch.pressed;
     }
@@ -33,7 +54,7 @@ export component MenuItem inherits Rectangle {
         Text {
             text: root.text;
             accessible-role: none;
-            color: Theme.palette.text;
+            color: root.ink;
             font-family: Theme.typography.family;
             font-size: Theme.typography.body-size;
             vertical-alignment: center;
@@ -43,6 +64,6 @@ export component MenuItem inherits Rectangle {
     touch := TouchArea {
         enabled: root.enabled;
         mouse-cursor: pointer;
-        clicked => { root.clicked(); }
+        clicked => { root.pick(); }
     }
 }

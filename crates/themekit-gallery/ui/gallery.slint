@@ -23,6 +23,13 @@ export component Gallery inherits Window {
     property <int> list-opened: -1;
     property <string> menu-choice: "nothing yet";
     property <int> size: 1;
+    // The long Select's options, and its pick.
+    property <[string]> planets: [
+        "Mercury", "Venus", "Earth", "Mars", "Ceres", "Jupiter", "Saturn", "Uranus",
+        "Neptune", "Pluto", "Haumea", "Makemake", "Eris", "Io", "Europa", "Ganymede",
+        "Callisto", "Titan", "Enceladus", "Triton", "Charon", "Phobos", "Deimos", "Mimas",
+    ];
+    property <int> planet: -1;
     property <bool> dialog-open;
     property <float> volume: 30;
     property <float> copies: 3;
@@ -126,6 +133,13 @@ export component Gallery inherits Window {
                             options: ["Small", "Medium", "Large"];
                             placeholder: "Disabled, nothing picked";
                             enabled: false;
+                        }
+                        // Too many options for the window: its menu scrolls.
+                        Select {
+                            options: root.planets;
+                            current-index: root.planet;
+                            placeholder: "A long list";
+                            selected(index) => { root.planet = index; }
                         }
                     }
                     HorizontalLayout {
@@ -670,8 +684,9 @@ export component Gallery inherits Window {
     menu := Menu {
         x: open-menu.absolute-position.x;
         y: open-menu.absolute-position.y + open-menu.height;
-        MenuItem { text: "Duplicate"; clicked => { root.menu-choice = "Duplicate"; } }
-        MenuItem { text: "Rename"; clicked => { root.menu-choice = "Rename"; } }
+        // The last chosen action is highlighted.
+        MenuItem { text: "Duplicate"; selected: root.menu-choice == self.text; clicked => { root.menu-choice = self.text; } }
+        MenuItem { text: "Rename"; selected: root.menu-choice == self.text; clicked => { root.menu-choice = self.text; } }
         MenuItem { text: "Archive (disabled)"; enabled: false; }
     }
 

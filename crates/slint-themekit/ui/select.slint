@@ -78,8 +78,10 @@ export component Select inherits Rectangle {
         x: 0;
         y: root.height;
         width: root.width;
+        current-index: root.current-index;
         for option[index] in root.options: MenuItem {
             text: option;
+            selected: index == root.current-index;
             clicked => { root.selected(index); }
         }
     }

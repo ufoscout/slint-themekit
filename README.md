@@ -14,7 +14,7 @@ The rules every component follows are in
 `Label`, `Button` (primary / secondary / ghost / danger, optional icon),
 `Checkbox`, `Radio`, `Switch`, `Slider`, `NumberField` (drag sideways or
 type), `TextField` (cuts off a text too long to fit, and tells you so for a
-tooltip), `Select` (a dropdown), `Chip`, `Badge`, `Card`, `ProgressBar`,
+tooltip), `Select` (a dropdown that opens on its current option, highlighted and centred), `Chip`, `Badge`, `Card`, `ProgressBar`,
 `Spinner`, `NavItem`, `Alert` (a message in a tone, optionally closable),
 `Toast`s in a `ToastStack` (notices floating over the UI, closing by
 themselves), `Dialog` (modal, over a scrim), `Popover` (a floating panel for
@@ -24,7 +24,7 @@ accordion), `Table` (rows of `TableCell`s under a header, in
 `TableColumn`s: texts, numbers to edit, images and buttons; only the rows in
 view exist), `ListView` (only the rows in view exist, for
 long lists; scrolls sideways for wide rows) of `ListItem`s or of `TreeItem`s
-(a tree, flattened), `Menu` (a popup) of `MenuItem`s, `Divider` and
+(a tree, flattened), `Menu` (a popup, which scrolls when long) of `MenuItem`s (optionally `selected`), `Divider` and
 `VerticalDivider`, `Splitter` (a handle that resizes the panes beside it),
 `ResizeGrip` (a corner handle that resizes what it sits in), `Shadow` (a
 floating panel's shadow, drawn on every renderer), `TooltipText` (the bubble
