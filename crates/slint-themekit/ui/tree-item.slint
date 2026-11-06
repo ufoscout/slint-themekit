@@ -1,6 +1,7 @@
 import { Theme } from "theme.slint";
 import { Icons } from "icons.slint";
 import { StateLayer } from "state-layer.slint";
+import { PressArea } from "press-area.slint";
 
 // A row of a tree shown as a flat `ListView`: the app lists the nodes in
 // view, in order, and gives each its depth (`level`, 0 for the roots).
@@ -41,7 +42,7 @@ export component TreeItem inherits Rectangle {
 
     // Behind the cells, so the chevron and interactive cells keep their own
     // input.
-    touch := TouchArea {
+    touch := PressArea {
         clicked => { root.clicked(); }
     }
 
@@ -65,7 +66,7 @@ export component TreeItem inherits Rectangle {
                 height: Theme.sizes.icon;
                 accessible-role: none;
             }
-            if root.expandable: TouchArea {
+            if root.expandable: PressArea {
                 mouse-cursor: pointer;
                 clicked => { root.toggled(); }
             }

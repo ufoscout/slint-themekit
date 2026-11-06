@@ -1,6 +1,7 @@
 import { Theme } from "theme.slint";
 import { Label } from "label.slint";
 import { StateLayer } from "state-layer.slint";
+import { PressArea } from "press-area.slint";
 
 // One choice of a set where exactly one is checked. Controlled: `checked` is
 // an input and clicking reports `clicked()`; the app checks this one and
@@ -63,7 +64,7 @@ export component Radio inherits Rectangle {
         }
     }
 
-    touch := TouchArea {
+    touch := PressArea {
         enabled: root.enabled;
         mouse-cursor: pointer;
         clicked => { root.clicked(); }

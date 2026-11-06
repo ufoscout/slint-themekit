@@ -41,6 +41,12 @@ Interactive controls are *controlled*: a `Checkbox` never flips its own
 `checked`, it reports `toggled()`. The state owner decides, which keeps the UI
 a pure view of your application state.
 
+Clicking a control (a button, a checkbox, a tab, a list row…) takes the
+keyboard focus, as in a desktop toolkit: a `TextField` or `NumberField` being
+edited loses it first, so a value it commits on focus loss is in before the
+click is reported (a Save button saves it). Only the fields and `Select` are
+Tab stops.
+
 ## Icons
 
 The icons in `crates/slint-themekit/ui/icons/` are

@@ -1,5 +1,6 @@
 import { Theme } from "theme.slint";
 import { StateLayer } from "state-layer.slint";
+import { PressArea } from "press-area.slint";
 
 // Selectable pill, typically used in groups as a filter or segmented control.
 // Like every control here it is controlled: `selected` is an input.
@@ -46,7 +47,7 @@ export component Chip inherits Rectangle {
         }
     }
 
-    touch := TouchArea {
+    touch := PressArea {
         mouse-cursor: pointer;
         clicked => { root.clicked(); }
     }

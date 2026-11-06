@@ -2,6 +2,7 @@ import { Theme } from "theme.slint";
 import { Icons } from "icons.slint";
 import { StateLayer } from "state-layer.slint";
 import { Divider } from "divider.slint";
+import { PressArea } from "press-area.slint";
 
 // A section that shows its children only while `expanded`, under a header
 // with its `title`. Stack several for an accordion. Controlled: clicking the
@@ -58,7 +59,7 @@ export component AccordionItem inherits Rectangle {
                 }
             }
 
-            touch := TouchArea {
+            touch := PressArea {
                 mouse-cursor: pointer;
                 clicked => { root.toggled(); }
             }

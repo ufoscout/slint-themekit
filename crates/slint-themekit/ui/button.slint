@@ -1,6 +1,7 @@
 import { Theme } from "theme.slint";
 import { ControlSize } from "tokens.slint";
 import { StateLayer } from "state-layer.slint";
+import { PressArea } from "press-area.slint";
 
 export enum ButtonKind { primary, secondary, ghost, danger }
 
@@ -76,7 +77,7 @@ export component Button inherits Rectangle {
         }
     }
 
-    touch := TouchArea {
+    touch := PressArea {
         enabled: root.enabled;
         mouse-cursor: pointer;
         clicked => { root.clicked(); }

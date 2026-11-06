@@ -1,6 +1,7 @@
 import { Theme } from "theme.slint";
 import { StateLayer } from "state-layer.slint";
 import { CloseButton } from "close-button.slint";
+import { PressArea } from "press-area.slint";
 
 // One tab of a `TabBar`. Controlled: `selected` is an input, `clicked()` asks
 // to select the tab. A `closable` tab also shows a × that asks to close it
@@ -35,7 +36,7 @@ export component Tab inherits Rectangle {
         pressed: touch.pressed;
     }
 
-    touch := TouchArea {
+    touch := PressArea {
         mouse-cursor: pointer;
         clicked => { root.clicked(); }
     }

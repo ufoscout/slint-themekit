@@ -2,6 +2,7 @@ import { Theme } from "theme.slint";
 import { Icons } from "icons.slint";
 import { Label } from "label.slint";
 import { StateLayer } from "state-layer.slint";
+import { PressArea } from "press-area.slint";
 
 // A *controlled* checkbox: it never changes `checked` by itself, it only
 // reports `toggled()`. The owner of the state decides what happens, which
@@ -61,7 +62,7 @@ export component Checkbox inherits Rectangle {
         }
     }
 
-    touch := TouchArea {
+    touch := PressArea {
         enabled: root.enabled;
         mouse-cursor: pointer;
         clicked => { root.toggled(); }

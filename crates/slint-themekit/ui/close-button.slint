@@ -2,6 +2,7 @@ import { Theme } from "theme.slint";
 import { Icons } from "icons.slint";
 import { StateLayer } from "state-layer.slint";
 import { TooltipText } from "tooltip-text.slint";
+import { PressArea } from "press-area.slint";
 
 // The × of a closable tab, alert or toast: an icon button small enough to
 // sit on a line of text. `label` names it for screen readers and in its
@@ -30,7 +31,7 @@ export component CloseButton inherits Rectangle {
         width: Theme.sizes.icon;
         height: Theme.sizes.icon;
     }
-    touch := TouchArea {
+    touch := PressArea {
         mouse-cursor: pointer;
         clicked => { root.clicked(); }
     }

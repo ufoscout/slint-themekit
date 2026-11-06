@@ -1,0 +1,31 @@
+// The clickable area of a control: a `TouchArea` that takes the keyboard
+// focus when pressed, as clicking a control does in a desktop toolkit. So a
+// text field being edited loses it, and commits, before the click is
+// reported: Slint runs the field's focus handlers before it dispatches the
+// release. It's no tab stop and handles no keys: Tab skips the control as
+// before. Internal: the controls use it in place of a bare `TouchArea`.
+export component PressArea inherits FocusScope {
+    in property <MouseCursor> mouse-cursor: MouseCursor.default;
+    out property <bool> has-hover: touch.has-hover;
+    out property <bool> pressed: touch.pressed;
+    out property <length> mouse-x: touch.mouse-x;
+    out property <length> mouse-y: touch.mouse-y;
+    callback clicked();
+    callback double-clicked();
+
+    focus-on-tab-navigation: false;
+    // The area below takes it, on press; a click doesn't wait for release.
+    focus-on-click: false;
+
+    touch := TouchArea {
+        enabled: root.enabled;
+        mouse-cursor: root.mouse-cursor;
+        pointer-event(event) => {
+            if event.kind == PointerEventKind.down {
+                root.focus();
+            }
+        }
+        clicked => { root.clicked(); }
+        double-clicked => { root.double-clicked(); }
+    }
+}

@@ -1,5 +1,6 @@
 import { Theme } from "theme.slint";
 import { StateLayer } from "state-layer.slint";
+import { PressArea } from "press-area.slint";
 
 // Entry of a navigation sidebar or rail.
 export component NavItem inherits Rectangle {
@@ -54,7 +55,7 @@ export component NavItem inherits Rectangle {
         }
     }
 
-    touch := TouchArea {
+    touch := PressArea {
         mouse-cursor: pointer;
         clicked => { root.clicked(); }
     }

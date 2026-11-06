@@ -166,7 +166,9 @@ export component Gallery inherits Window {
                             maximum: 10;
                             changed(value) => { root.copies = value; }
                         }
-                        Label { text: "Copies (0 to 10): drag sideways, or click and type"; tone: Tone.muted; }
+                        // A typed number commits on Enter, or when the field loses
+                        // the focus: clicking any control (a button, a tab…) takes it.
+                        Label { text: "Copies \{root.copies} (0 to 10): drag sideways, or type and then press Enter or click any control"; tone: Tone.muted; }
                         NumberField {
                             width: Theme.sizes.control-height * 2.5;
                             value: 7;

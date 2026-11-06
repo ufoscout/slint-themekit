@@ -1,5 +1,6 @@
 import { Theme } from "theme.slint";
 import { StateLayer } from "state-layer.slint";
+import { PressArea } from "press-area.slint";
 
 // A row of a `ListView`; its children are the cells, side by side. The row
 // is as tall as its cells. Controlled: `selected` is an input, `clicked()`
@@ -30,7 +31,7 @@ export component ListItem inherits Rectangle {
     }
 
     // Behind the cells, so interactive cells keep their own input.
-    touch := TouchArea {
+    touch := PressArea {
         clicked => { root.clicked(); }
         double-clicked => { root.double-clicked(); }
     }
