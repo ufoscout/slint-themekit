@@ -15,7 +15,7 @@ The rules every component follows are in
 `Checkbox`, `Radio`, `Switch`, `Slider`, `NumberField` (drag sideways or
 type), `TextField` (cuts off a text too long to fit, and tells you so for a
 tooltip; its text at the start or, with `horizontal-alignment`, centred or at
-the end), `Select` (a dropdown that opens on its current option, highlighted and centred; Up and Down change it from the keyboard), `Chip`, `Badge`, `Card`, `ProgressBar`,
+the end), `Select` (a dropdown that opens on its current option, highlighted and centred; Up and Down change it from the keyboard; its value at the start or, with `horizontal-alignment`, centred or at the end), `Chip`, `Badge`, `Card`, `ProgressBar`,
 `Spinner`, `NavItem`, `Alert` (a message in a tone, optionally closable),
 `Toast`s in a `ToastStack` (notices floating over the UI, closing by
 themselves), `Dialog` (modal, over a scrim), `Popover` (a floating panel for

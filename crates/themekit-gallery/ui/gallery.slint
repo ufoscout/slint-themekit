@@ -129,9 +129,11 @@ export component Gallery inherits Window {
                     }
                     HorizontalLayout {
                         spacing: Theme.spacing.sm;
+                        // Its value centred, chevron included.
                         Select {
                             options: ["Small", "Medium", "Large"];
                             current-index: root.size;
+                            horizontal-alignment: TextHorizontalAlignment.center;
                             selected(index) => { root.size = index; }
                         }
                         Select {
