@@ -30,6 +30,7 @@ export component Gallery inherits Window {
         "Callisto", "Titan", "Enceladus", "Triton", "Charon", "Phobos", "Deimos", "Mimas",
     ];
     property <int> planet: -1;
+    property <int> long-option: 0;
     property <bool> dialog-open;
     property <float> volume: 30;
     property <float> copies: 3;
@@ -147,6 +148,13 @@ export component Gallery inherits Window {
                             current-index: root.planet;
                             placeholder: "A long list";
                             selected(index) => { root.planet = index; }
+                        }
+                        // Options longer than the dropdown: its menu widens to
+                        // show them whole.
+                        Select {
+                            options: ["Short", "An option far longer than its dropdown, so its menu widens to show it whole", "Another one, also too long for the dropdown"];
+                            current-index: root.long-option;
+                            selected(index) => { root.long-option = index; }
                         }
                     }
                     Label {
@@ -438,7 +446,7 @@ export component Gallery inherits Window {
                     HorizontalLayout {
                         spacing: Theme.spacing.lg;
                         alignment: start;
-                        for icon in [Icons.plus, Icons.check, Icons.trash, Icons.list, Icons.chart, Icons.contrast, Icons.close, Icons.expand, Icons.collapsed, Icons.play, Icons.pause, Icons.stop, Icons.copy, Icons.open, Icons.save, Icons.inventory, Icons.magic, Icons.info, Icons.success, Icons.warning, Icons.danger]: Image {
+                        for icon in [Icons.plus, Icons.check, Icons.trash, Icons.list, Icons.chart, Icons.contrast, Icons.close, Icons.expand, Icons.collapsed, Icons.play, Icons.pause, Icons.stop, Icons.copy, Icons.edit, Icons.open, Icons.save, Icons.inventory, Icons.magic, Icons.info, Icons.success, Icons.warning, Icons.danger]: Image {
                             source: icon;
                             colorize: Theme.palette.text;
                             width: Theme.sizes.icon * 1.5;

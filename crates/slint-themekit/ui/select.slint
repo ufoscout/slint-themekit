@@ -9,10 +9,11 @@ import { MenuItem } from "menu-item.slint";
 // input (-1 shows the `placeholder`), and picking an option reports
 // `selected(index)`. Once it has focus (click it, or Tab to it), Up and Down
 // pick the previous or next option, whether the menu is open or not, and
-// Enter or Space opens or closes the menu. It comes in three sizes, like
-// `Button`. `horizontal-alignment` places the value (or the placeholder):
-// centred, it is centred on the whole dropdown, chevron included, so it
-// lines up with centred text above or below it.
+// Enter or Space opens or closes the menu, which is as wide as the
+// dropdown, or wider to show its longest option whole. It comes in three
+// sizes, like `Button`. `horizontal-alignment` places the value (or the
+// placeholder): centred, it is centred on the whole dropdown, chevron
+// included, so it lines up with centred text above or below it.
 export component Select inherits Rectangle {
     in property <[string]> options;
     in property <int> current-index: -1;
@@ -134,7 +135,8 @@ export component Select inherits Rectangle {
     popup := Menu {
         x: 0;
         y: root.height;
-        width: root.width;
+        // As wide as the dropdown, or wider to show its longest option whole.
+        width: max(root.width, self.preferred-width);
         current-index: root.current-index;
         key-pressed(event) => {
             return root.key(event);
