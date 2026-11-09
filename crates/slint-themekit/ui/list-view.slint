@@ -21,6 +21,19 @@ export component ListView inherits Rectangle {
     property <length> track-width: Theme.sizes.scrollbar-width + Theme.spacing.xs;
     property <bool> wide: flick.content-width > flick.width;
 
+    // When the rows get fewer (filtered, replaced) or the list taller, an
+    // offset scrolled far down can be left past their end, and the list
+    // shows only its last row, or none: the Flickable doesn't take it back.
+    // Keep the offset where the rows end at the bottom, at most.
+    function keep-in-range() {
+        flick.content-y = max(min(0px, flick.height - flick.content-height), flick.content-y);
+        flick.content-x = max(min(0px, flick.width - flick.content-width), flick.content-x);
+    }
+    changed content-height => { root.keep-in-range(); }
+    changed visible-height => { root.keep-in-range(); }
+    changed content-width => { root.keep-in-range(); }
+    changed visible-width => { root.keep-in-range(); }
+
     vertical-stretch: 1;
     horizontal-stretch: 1;
     accessible-role: list;
