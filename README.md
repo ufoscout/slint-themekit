@@ -23,7 +23,8 @@ any content), `Tab` (optionally closable) in a `TabBar` (wraps when the tabs
 don't fit), `AccordionItem` (a collapsible section; stack them for an
 accordion), `Table` (rows of `TableCell`s under a header, in
 `TableColumn`s: texts, numbers to edit, images and buttons; only the rows in
-view exist), `ListView` (only the rows in view exist, for
+view exist; the last columns can stay in view while the others scroll
+sideways), `ListView` (only the rows in view exist, for
 long lists; scrolls sideways for wide rows) of `ListItem`s or of `TreeItem`s
 (a tree, flattened), `Menu` (a popup, which scrolls when long) of `MenuItem`s (optionally `selected`), `Divider` and
 `VerticalDivider`, `Splitter` (a handle that resizes the panes beside it),

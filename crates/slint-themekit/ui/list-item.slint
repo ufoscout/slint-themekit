@@ -6,12 +6,16 @@ import { PressArea } from "press-area.slint";
 // is as tall as its cells. Controlled: `selected` is an input, `clicked()`
 // and `double-clicked()` report what the user did, and `pointer-x` /
 // `pointer-y` locate the last click inside the row (to open a `Menu` there).
+// `has-hover` and `pressed` tell what the pointer does to it, for anything
+// drawn over the row that should look like it.
 export component ListItem inherits Rectangle {
     in property <bool> selected;
     // The row's position in its list: odd rows get a stripe. -1 for none.
     in property <int> index: -1;
     out property <length> pointer-x: touch.mouse-x;
     out property <length> pointer-y: touch.mouse-y;
+    out property <bool> has-hover: touch.has-hover;
+    out property <bool> pressed: touch.pressed;
     callback clicked();
     callback double-clicked();
 

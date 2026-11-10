@@ -7,6 +7,7 @@ import { ListItem } from "list-item.slint";
 import { NumberField } from "number-field.slint";
 import { Button, ButtonKind } from "button.slint";
 import { TooltipText } from "tooltip-text.slint";
+import { StateLayer } from "state-layer.slint";
 
 // A column of a `Table`.
 export struct TableColumn {
@@ -125,7 +126,9 @@ component CellView inherits HorizontalLayout {
 // images and buttons (see `TableCell`), the numbers and buttons in one of
 // the three sizes, like `Button`. Only the rows in view exist, as in a
 // `ListView`; when the columns don't fit, the table scrolls sideways and the
-// header follows. A text cut off by its column shows whole in a tooltip.
+// header follows; the last `pinned-columns` columns (actions like Edit and
+// Delete) stay at its right edge meanwhile, the others scrolling under them.
+// A text cut off by its column shows whole in a tooltip.
 // Controlled: `selected-row` is an input (-1 for none), and the table
 // reports what the user does: `row-clicked(row)` and
 // `row-double-clicked(row)`, with `pointer-x` / `pointer-y` locating the
@@ -137,6 +140,9 @@ export component Table inherits Rectangle {
     in property <int> selected-row: -1;
     // The size of the number fields and buttons in the cells.
     in property <ControlSize> size: ControlSize.medium;
+    // How many of the last columns stay in view when the rows scroll
+    // sideways. Give them a `width`.
+    in property <int> pinned-columns;
     out property <length> pointer-x;
     out property <length> pointer-y;
     callback row-clicked(row: int);
@@ -168,9 +174,19 @@ export component Table inherits Rectangle {
     // rows that just changed.
     property <length> row-height: row-shape.preferred-height;
 
+    // The first pinned column. The rows and the header keep every column in
+    // their layout, the pinned ones hidden, and draw the pinned ones again
+    // at the right edge of what's in view, over the others.
+    property <int> first-pinned: max(0, root.columns.length - root.pinned-columns);
+    property <bool> pinned: root.first-pinned < root.columns.length;
+    // Columns scroll under the pinned ones: a line sets them apart.
+    property <bool> scrolls-under: root.pinned && list.content-width > list.visible-width;
+
     vertical-stretch: 1;
     horizontal-stretch: 1;
     clip: true;
+    // Opaque, so the pinned columns hide what scrolls under them.
+    background: Theme.palette.surface;
     border-radius: Theme.radii.md;
     border-width: Theme.sizes.border-width;
     border-color: Theme.palette.border;
@@ -228,6 +244,7 @@ export component Table inherits Rectangle {
                     spacing: Theme.spacing.sm;
 
                     for column[index] in root.columns: Text {
+                        visible: index < root.first-pinned;
                         text: column.title;
                         min-width: root.cell-min-width(index);
                         preferred-width: column.width;
@@ -241,6 +258,41 @@ export component Table inherits Rectangle {
                         vertical-alignment: center;
                     }
                 }
+
+                // The pinned columns' titles, at the right edge.
+                Rectangle {
+                    visible: root.pinned;
+                    x: list.visible-width - self.width;
+                    width: pinned-header.preferred-width;
+                    background: Theme.palette.surface-variant;
+
+                    if root.scrolls-under: Rectangle {
+                        x: 0;
+                        width: Theme.sizes.border-width;
+                        background: Theme.palette.border;
+                    }
+
+                    pinned-header := HorizontalLayout {
+                        padding-left: Theme.spacing.sm;
+                        padding-right: Theme.spacing.md;
+                        padding-top: Theme.spacing.sm;
+                        padding-bottom: Theme.spacing.sm;
+                        spacing: Theme.spacing.sm;
+
+                        for offset in root.columns.length - root.first-pinned: Text {
+                            text: root.columns[root.first-pinned + offset].title;
+                            min-width: root.cell-min-width(root.first-pinned + offset);
+                            preferred-width: root.columns[root.first-pinned + offset].width;
+                            horizontal-alignment: root.columns[root.first-pinned + offset].alignment;
+                            overflow: elide;
+                            color: Theme.palette.text-muted;
+                            font-family: Theme.typography.family;
+                            font-size: Theme.typography.body-size;
+                            font-weight: Theme.typography.strong-weight;
+                            vertical-alignment: center;
+                        }
+                    }
+                }
             }
         }
 
@@ -249,30 +301,77 @@ export component Table inherits Rectangle {
         list := ListView {
             content-width: max(self.visible-width, header.min-width);
 
-            for row[row-index] in root.rows: ListItem {
+            for row[row-index] in root.rows: Rectangle {
                 width: list.content-width;
-                index: row-index;
-                selected: root.selected-row == row-index;
-                clicked => {
-                    root.pointer-x = self.absolute-position.x - root.absolute-position.x + self.pointer-x;
-                    root.pointer-y = self.absolute-position.y - root.absolute-position.y + self.pointer-y;
-                    root.row-clicked(row-index);
-                }
-                double-clicked => {
-                    root.pointer-x = self.absolute-position.x - root.absolute-position.x + self.pointer-x;
-                    root.pointer-y = self.absolute-position.y - root.absolute-position.y + self.pointer-y;
-                    root.row-double-clicked(row-index);
+                height: item.preferred-height;
+
+                item := ListItem {
+                    width: parent.width;
+                    height: parent.height;
+                    index: row-index;
+                    selected: root.selected-row == row-index;
+                    clicked => {
+                        root.pointer-x = self.absolute-position.x - root.absolute-position.x + self.pointer-x;
+                        root.pointer-y = self.absolute-position.y - root.absolute-position.y + self.pointer-y;
+                        root.row-clicked(row-index);
+                    }
+                    double-clicked => {
+                        root.pointer-x = self.absolute-position.x - root.absolute-position.x + self.pointer-x;
+                        root.pointer-y = self.absolute-position.y - root.absolute-position.y + self.pointer-y;
+                        root.row-double-clicked(row-index);
+                    }
+
+                    for column[index] in root.columns: CellView {
+                        visible: index < root.first-pinned;
+                        cell: row[index];
+                        column: column;
+                        size: root.size;
+                        min-width: root.cell-min-width(index);
+                        preferred-width: column.width;
+                        horizontal-stretch: root.cell-stretch(index);
+                        number-changed(value) => { root.number-changed(row-index, index, value); }
+                        button-clicked => { root.button-clicked(row-index, index); }
+                    }
                 }
 
-                for column[index] in root.columns: CellView {
-                    cell: row[index];
-                    column: column;
-                    size: root.size;
-                    min-width: root.cell-min-width(index);
-                    preferred-width: column.width;
-                    horizontal-stretch: root.cell-stretch(index);
-                    number-changed(value) => { root.number-changed(row-index, index, value); }
-                    button-clicked => { root.button-clicked(row-index, index); }
+                // The pinned cells, at the right edge of what's in view, as
+                // the row looks there. Clicks between them reach the row.
+                Rectangle {
+                    visible: root.pinned;
+                    x: list.visible-width - list.content-x - self.width;
+                    width: pinned-cells.preferred-width;
+                    background: item.selected ? Theme.palette.primary-container
+                        : Math.mod(row-index, 2) == 1 ? Theme.palette.surface-variant
+                        : Theme.palette.surface;
+
+                    StateLayer {
+                        hovered: item.has-hover;
+                        pressed: item.pressed;
+                    }
+
+                    if root.scrolls-under: Rectangle {
+                        x: 0;
+                        width: Theme.sizes.border-width;
+                        background: Theme.palette.border;
+                    }
+
+                    pinned-cells := HorizontalLayout {
+                        padding-left: Theme.spacing.sm;
+                        padding-right: Theme.spacing.md;
+                        padding-top: Theme.spacing.xs;
+                        padding-bottom: Theme.spacing.xs;
+                        spacing: Theme.spacing.sm;
+
+                        for offset in root.columns.length - root.first-pinned: CellView {
+                            cell: row[root.first-pinned + offset];
+                            column: root.columns[root.first-pinned + offset];
+                            size: root.size;
+                            min-width: root.cell-min-width(root.first-pinned + offset);
+                            preferred-width: root.columns[root.first-pinned + offset].width;
+                            number-changed(value) => { root.number-changed(row-index, root.first-pinned + offset, value); }
+                            button-clicked => { root.button-clicked(row-index, root.first-pinned + offset); }
+                        }
+                    }
                 }
             }
         }

@@ -315,6 +315,9 @@ export component Gallery inherits Window {
                         ];
                         rows: root.files;
                         size: root.file-size;
+                        // The Open buttons stay in view when the table scrolls
+                        // sideways (in a narrow window).
+                        pinned-columns: 1;
                         selected-row: root.file-row;
                         row-clicked(row) => { root.file-row = row; }
                         row-double-clicked(row) => { root.file-opened = row; }
